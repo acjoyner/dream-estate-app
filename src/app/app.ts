@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
-import { Firebase } from './services/firebase'; // Real service
+import { Firebase } from './services/firebase';
 import { Subscription } from 'rxjs';
-import { NgIf, AsyncPipe, CommonModule } from '@angular/common';
+import { NgIf, AsyncPipe } from '@angular/common';
 
 // Import standalone components
 import { MediaUpload } from './media-upload/media-upload';
@@ -10,13 +10,14 @@ import { MediaDisplay } from './media-display/media-display';
 import { Login } from './auth/login/login';
 import { Signup } from './auth/signup/signup';
 import { Profile } from './profile/profile';
-import { Friends } from './friends/friends'; // New: Import Friends component
+import { Friends } from './friends/friends';
+import { AdminPanel } from './admin-panel/admin-panel';
+import { HelpfulLinks } from './helpful-links/helpful-links'; // New: HelpfulLinksComponent
 
 // Angular Material Components for the header
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { AdminPanel } from "./admin-panel/admin-panel";
 
 @Component({
   selector: 'app-root',
@@ -24,25 +25,24 @@ import { AdminPanel } from "./admin-panel/admin-panel";
   styleUrls: ['./app.scss'],
   standalone: true,
   imports: [
-    RouterOutlet, RouterLink, RouterLinkActive, NgIf, AsyncPipe,
-    MatToolbarModule, MatButtonModule, MatIconModule,
-    MediaUpload, MediaDisplay, CommonModule,
-    Login, Signup, Profile, Friends, // New: Import Friends component
-    AdminPanel
-]
+    RouterOutlet, RouterLink, RouterLinkActive, NgIf, AsyncPipe,MatToolbarModule, MatButtonModule, MatIconModule,
+    MediaUpload, MediaDisplay,Login, Signup, Profile,Friends, AdminPanel, // Existing new components
+    HelpfulLinks // New: Add HelpfulLinksComponent
+  ]
 })
 export class App implements OnInit, OnDestroy {
   title = 'DreamEstate';
-  activeView: 'upload' | 'display' | 'login' | 'signup' | 'profile' | 'friends' | 'admin' = 'login'; // Added 'friends', 'admin'
+  // Added 'resources' to activeView types
+  activeView: 'upload' | 'display' | 'login' | 'signup' | 'profile' | 'friends' | 'admin' | 'resources' = 'login';
   currentUserId: string | null = null;
   isServiceReady: boolean = false;
   userProfilePictureUrl: string | null = null;
-  isAdmin: boolean = false; // New: Tracks admin status
+  isAdmin: boolean = false;
 
   private userIdSubscription: Subscription | undefined;
   private isReadySubscription: Subscription | undefined;
   private profilePictureSubscription: Subscription | undefined;
-  private isAdminSubscription: Subscription | undefined; // New subscription
+  private isAdminSubscription: Subscription | undefined;
 
   constructor(public firebaseService: Firebase) {}
 
@@ -51,7 +51,7 @@ export class App implements OnInit, OnDestroy {
       this.currentUserId = userId;
       if (userId && (this.activeView === 'login' || this.activeView === 'signup')) {
         this.activeView = 'upload';
-      } else if (!userId && (this.activeView === 'upload' || this.activeView === 'display' || this.activeView === 'profile' || this.activeView === 'friends' || this.activeView === 'admin')) {
+      } else if (!userId && (this.activeView === 'upload' || this.activeView === 'display' || this.activeView === 'profile' || this.activeView === 'friends' || this.activeView === 'admin' || this.activeView === 'resources')) { // Added 'resources'
         this.activeView = 'login';
       }
     });
@@ -61,7 +61,7 @@ export class App implements OnInit, OnDestroy {
     this.profilePictureSubscription = this.firebaseService.currentUserProfilePictureUrl$.subscribe(url => {
       this.userProfilePictureUrl = url;
     });
-    this.isAdminSubscription = this.firebaseService.isAdmin$.subscribe(isAdmin => { // New: Subscribe to admin status
+    this.isAdminSubscription = this.firebaseService.isAdmin$.subscribe(isAdmin => {
       this.isAdmin = isAdmin;
     });
   }
@@ -70,10 +70,11 @@ export class App implements OnInit, OnDestroy {
     this.userIdSubscription?.unsubscribe();
     this.isReadySubscription?.unsubscribe();
     this.profilePictureSubscription?.unsubscribe();
-    this.isAdminSubscription?.unsubscribe(); // New: Unsubscribe
+    this.isAdminSubscription?.unsubscribe();
   }
 
-  changeView(view: 'upload' | 'display' | 'login' | 'signup' | 'profile' | 'friends' | 'admin'): void { // Added 'friends', 'admin'
+  // Added 'resources' to changeView types
+  changeView(view: 'upload' | 'display' | 'login' | 'signup' | 'profile' | 'friends' | 'admin' | 'resources'): void {
     this.activeView = view;
   }
 

@@ -16,6 +16,9 @@ import { getStorage, provideStorage } from '@angular/fire/storage';
 import { routes } from './app.routes';
 import { FormsModule } from '@angular/forms'; // FormsModule is an NgModule
 import { MatListModule } from '@angular/material/list';
+// Angular Material Snackbar Module
+import { MatSnackBarModule } from '@angular/material/snack-bar'; // <--- ADDED: MatSnackBarModule
+
 
 const firebaseConfig = {
   apiKey: 'AIzaSyDMGIHuEotmRpahQGmC5Bq3cWaacGq4fBs',
@@ -37,7 +40,7 @@ export const appConfig: ApplicationConfig = {
 
     // NgModules that need their providers imported into the standalone app
     // FormsModule is an NgModule, so it uses importProvidersFrom
-    importProvidersFrom(FormsModule), // Correct usage for NgModule
+    importProvidersFrom(FormsModule, MatSnackBarModule), // Correct usage for NgModule
 
     // Firebase Providers from @angular/fire
     // These functions themselves return EnvironmentProviders, so they are added directly

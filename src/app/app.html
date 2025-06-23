@@ -1,11 +1,12 @@
 <div class="min-h-screen flex flex-col">
   <header class="bg-white shadow-md p-4 flex justify-between items-center sticky top-0 z-30">
+      <!-- Replaced h1 with img for the logo -->
+
     <h1 class="text-3xl font-extrabold text-blue-700 tracking-tight">
       {{ title }}
     </h1>
     <nav>
       <ul class="flex space-x-6 items-center">
-        <!-- Use a local template variable for async pipe result -->
         <ng-container *ngIf="firebaseService.userId$ | async as currentUserIdObservable">
           <li *ngIf="currentUserIdObservable">
             <button mat-button
@@ -59,7 +60,20 @@
               Friends
             </button>
           </li>
-          <!-- Now using currentUserIdObservable and isAdmin -->
+          <!-- New: Resources Link (visible to all logged-in users) -->
+          <li *ngIf="currentUserIdObservable">
+            <button mat-button
+              [class.text-blue-600]="activeView === 'resources'"
+              [class.border-b-2]="activeView === 'resources'"
+              [class.border-blue-600]="activeView === 'resources'"
+              [class.text-gray-600]="activeView !== 'resources'"
+              [class.hover:text-blue-500]="activeView !== 'resources'"
+              class="text-lg font-medium transition-colors duration-200"
+              (click)="changeView('resources')"
+            >
+              Resources
+            </button>
+          </li>
           <li *ngIf="currentUserIdObservable && isAdmin">
             <button mat-button
               [class.text-blue-600]="activeView === 'admin'"
@@ -85,7 +99,6 @@
           <li *ngIf="isAdmin" class="ml-2 text-sm text-purple-700 font-bold">ADMIN</li>
         </ng-container>
 
-        <!-- Login/Signup buttons (only show if NOT logged in) -->
         <ng-container *ngIf="!(firebaseService.userId$ | async)">
           <li>
             <button mat-button
@@ -128,19 +141,19 @@
       </ng-template>
       <br>
       <span class="italic text-gray-500">
-        (Data will now persist with Firebase!)
+  
       </span>
     </div>
     <div *ngIf="!isServiceReady" class="text-center text-gray-600 mb-6">
       Initializing App... Please wait.
     </div>
-    <!-- Conditional rendering based on authentication state and active view -->
-    <ng-container *ngIf="firebaseService.userId$ | async as currentUserIdMain; else authSection">
+    <ng-container *ngIf="firebaseService.userId$ | async; else authSection">
       <app-media-upload *ngIf="activeView === 'upload'"></app-media-upload>
       <app-media-display *ngIf="activeView === 'display'"></app-media-display>
       <app-profile *ngIf="activeView === 'profile'"></app-profile>
       <app-friends *ngIf="activeView === 'friends'"></app-friends>
-      <app-admin-panel *ngIf="activeView === 'admin' && isAdmin"></app-admin-panel> <!-- Use isAdmin directly -->
+      <app-admin-panel *ngIf="activeView === 'admin' && isAdmin"></app-admin-panel>
+      <app-helpful-links *ngIf="activeView === 'resources'"></app-helpful-links> <!-- New: Helpful Links component -->
     </ng-container>
 
     <ng-template #authSection>

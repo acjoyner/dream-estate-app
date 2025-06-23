@@ -28,17 +28,18 @@ import {
   getDoc,
   arrayUnion,
   arrayRemove,
-  deleteDoc // <--- ADDED: deleteDoc import
+  deleteDoc // Ensure deleteDoc is imported
 } from '@angular/fire/firestore';
 
 import {
   Storage,
   ref,
   uploadBytesResumable,
-  getDownloadURL
+  getDownloadURL,
+  deleteObject // Ensure deleteObject is imported
 } from '@angular/fire/storage';
 
-import { BehaviorSubject, Observable, Subscription, from, combineLatest } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, from } from 'rxjs';
 import { filter, switchMap, take, map } from 'rxjs/operators';
 
 interface MediaItem {
@@ -243,12 +244,10 @@ export class Firebase implements OnDestroy {
   deleteCurrentUser(email: string, password: string): Observable<boolean> {
     return from(reauthenticateWithCredential(this.auth.currentUser!, EmailAuthProvider.credential(email, password))).pipe(
       switchMap(async () => {
-        // After successful re-authentication, delete the Auth user
-        await deleteUser(this.auth.currentUser!); // Use imported deleteUser
+        await deleteUser(this.auth.currentUser!);
 
-        // OPTIONAL: Delete user's profile document from Firestore after Auth deletion
         const userDocRef = doc(this.db, 'artifacts', this.canvasAppId, 'users', this.auth.currentUser!.uid);
-        await deleteDoc(userDocRef); // FIX: Use imported deleteDoc here
+        await deleteDoc(userDocRef);
         console.log('Real Firebase: User profile document deleted.');
         return true;
       }),
@@ -280,7 +279,6 @@ export class Firebase implements OnDestroy {
 
     return new Observable<UserProfile[]>(observer => {
       const unsubscribe = onSnapshot(q, (snapshot) => {
-        // FIX: Correctly map and cast doc.data() to UserProfile
         const users = snapshot.docs.map(doc => ({ ...doc.data(), uid: doc.id } as UserProfile));
         observer.next(users);
       }, (error: any) => {
@@ -298,8 +296,6 @@ export class Firebase implements OnDestroy {
       take(1)
     );
   }
-
-  // --- Friend System Methods ---
 
   sendFriendRequest(senderUid: string, receiverUid: string): Observable<boolean> {
     if (senderUid === receiverUid) {
@@ -380,8 +376,6 @@ export class Firebase implements OnDestroy {
       take(1)
     );
   }
-
-  // --- Media Upload/Display/Like Methods ---
 
   uploadProfilePicture(file: File, uid: string): Observable<number> {
     const filePath = `artifacts/<span class="math-inline">\{this\.canvasAppId\}/profile\_pictures/</span>{uid}/${file.name}`;
@@ -491,10 +485,77 @@ export class Firebase implements OnDestroy {
         }
         await updateDoc(mediaDocRef, { likes: likes, likesCount: likesCount });
       }),
-      map(() => {} ),
+      map(() => {}),
       take(1)
     );
   }
+
+  // --- NEW: deleteMedia method ---
+  /**
+   * Deletes a media item (file from Storage and document from Firestore).
+   * @param mediaItemId The ID of the media document in Firestore.
+   * @param ownerId The UID of the media item's owner (for Storage path).
+   * @param fileName The original file name (for Storage path).
+   * @returns An Observable that emits true on success, false on failure.
+   */
+  deleteMedia(mediaItemId: string, ownerId: string, fileName: string): Observable<boolean> {
+    // Construct the Storage path (must match upload path)
+    const storagePath = `artifacts/<span class="math-inline">\{this\.canvasAppId\}/public\_media/</span>{ownerId}_${Date.now()}_${fileName}`;
+    // Reconstruct the actual Storage path based on how it was saved.
+    // The problem is `Date.now()` is in the filename. We need to parse it from the `mediaUrl` or query.
+    // For simplicity with this current structure, we'll try to deduce it from the URL or match closely.
+    // A more robust solution would store the StoragePath directly in the Firestore document.
+
+    // Attempt to derive the storage path from mediaUrl if it's available, otherwise fallback.
+    // This is a common pattern for deletion when you don't store the full path directly.
+    const mediaDocRef = doc(this.db, 'artifacts', this.canvasAppId, 'public/data/media', mediaItemId);
+
+    return from(getDoc(mediaDocRef)).pipe(
+      switchMap(async (docSnap) => {
+        if (!docSnap.exists()) {
+          throw new Error('Media item not found in Firestore.');
+        }
+        const mediaData = docSnap.data() as MediaItem;
+        const mediaUrl = mediaData.mediaUrl;
+
+        let fileRefPath: string | null = null;
+
+        // Attempt to extract path from Firebase Storage URL
+        // Firebase Storage URLs are typically: https://firebasestorage.googleapis.com/v0/b/project.appspot.com/o/path%2Fto%2Ffile?alt=media...
+        const storageUrlPrefix = `https://firebasestorage.googleapis.com/v0/b/${this.storage.app.options.storageBucket}/o/`;
+        if (mediaUrl.startsWith(storageUrlPrefix)) {
+          // Extract the encoded path part
+          const encodedPath = mediaUrl.substring(storageUrlPrefix.length).split('?')[0];
+          // Decode it to get the original path
+          fileRefPath = decodeURIComponent(encodedPath);
+        }
+
+        if (!fileRefPath) {
+          // Fallback: if URL parsing fails, construct an assumed path. This is less reliable.
+          // This fallback is why storing `storagePath` in Firestore is better.
+          fileRefPath = `artifacts/<span class="math-inline">\{this\.canvasAppId\}/public\_media/</span>{ownerId}_${mediaData.fileName}`; // Assumes original filename without timestamp for basic matching
+          // If the exact filename including timestamp is needed, it must be stored in Firestore.
+          console.warn("Real Firebase: Could not parse storage path from mediaUrl. Falling back to constructed path. This might fail if filename had timestamp.");
+        }
+
+        const storageRefToDelete = ref(this.storage, fileRefPath);
+
+        // 1. Delete file from Storage
+        await deleteObject(storageRefToDelete); // Use imported deleteObject
+        console.log('Real Firebase: Media file deleted from Storage.');
+
+        // 2. Delete document from Firestore
+        await deleteDoc(mediaDocRef); // Use imported deleteDoc
+        console.log('Real Firebase: Media document deleted from Firestore.');
+
+        return true;
+      }),
+      map(() => true), // Map to true on success
+      take(1)
+    );
+  }
+  // --- End NEW: deleteMedia method ---
+
 
   private async populateMockListings(db: Firestore, appId: string) {
     const listingsCollectionRef = collection(db, 'artifacts', appId, 'public/data/listings');

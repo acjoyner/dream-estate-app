@@ -1,0 +1,17 @@
+<svg width="200" height="40" viewBox="0 0 200 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .logo-text { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 24px; }
+    .logo-icon { fill: #2563EB; } /* Tailwind blue-600 */
+    .logo-icon-stroke { stroke: #2563EB; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .logo-text-fill { fill: #1F2937; } /* Tailwind gray-800 */
+    .logo-estate-fill { fill: #4F46E5; } /* Tailwind indigo-600 */
+  </style>
+  <!-- House Icon -->
+  <path class="logo-icon" d="M10 20L20 10L30 20H25V30H15V20H10Z"/>
+  <path class="logo-icon-stroke" d="M2 18L20 2L38 18M6 16V34C6 35.1046 6.89543 36 8 36H32C33.1046 36 34 35.1046 34 34V16"/>
+
+  <!-- Text: Dream -->
+  <text x="45" y="29" class="logo-text logo-text-fill">Dream</text>
+  <!-- Text: Estate -->
+  <text x="120" y="29" class="logo-text logo-estate-fill">Estate</text>
+</svg>

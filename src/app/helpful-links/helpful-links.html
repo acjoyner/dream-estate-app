@@ -1,0 +1,23 @@
+<div class="container mx-auto p-4">
+  <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Helpful Real Estate Resources</h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <mat-card *ngFor="let resource of resources" class="mat-card p-6 flex flex-col justify-between items-start">
+      <mat-card-header class="w-full mb-3">
+        <div mat-card-avatar class="example-header-image">
+          <mat-icon class="text-3xl text-blue-600">{{ resource.icon }}</mat-icon>
+        </div>
+        <mat-card-title class="text-xl font-semibold text-gray-800 break-words">{{ resource.name }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="flex-grow w-full mb-4">
+        <p class="text-gray-700 text-sm">{{ resource.description }}</p>
+      </mat-card-content>
+      <mat-card-actions class="w-full flex justify-end">
+        <button mat-flat-button color="primary" (click)="openLink(resource.url)" class="bg-blue-500 hover:bg-blue-600 text-white">
+          Go to Site
+          <mat-icon class="ml-1 text-base">open_in_new</mat-icon>
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>
