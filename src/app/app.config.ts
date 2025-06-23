@@ -17,6 +17,12 @@ import { getStorage, provideStorage } from '@angular/fire/storage';
 import { routes } from './app.routes'; // Ensure this is imported
 import { FormsModule } from '@angular/forms';
 
+
+// src/app/app.config.ts
+
+// !!! WARNING: This API key is publicly exposed in client-side code. !!!
+// !!! It is secured by "HTTP referrers (web sites)" restrictions in Google Cloud Console. !!!
+// !!! Do NOT add server-side API keys here. !!!
 const firebaseConfig = {
   apiKey: 'AIzaSyDMGIHuEotmRpahQGmC5Bq3cWaacGq4fBs',
   authDomain: 'dreamestate-app.firebaseapp.com',
