@@ -1,0 +1,27 @@
+<div class="container mx-auto p-4">
+    <app-message-box *ngIf="messageBox" [message]="messageBox" (onClose)="closeMessageBox()"></app-message-box>
+    <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Uploaded Media</h2>
+    <div *ngIf="mediaItems.length === 0" class="text-center text-gray-600">
+        No mock media available. Upload some!
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <mat-card *ngFor="let item of mediaItems" class="mat-card shadow-lg p-5">
+            <mat-card-content>
+                <div class="w-full h-64 bg-gray-200 mb-4 rounded-md overflow-hidden flex items-center justify-center">
+                    <img *ngIf="item.mediaType === 'image'" [src]="item.mediaUrl" alt="Uploaded Image" class="w-full h-full object-cover">
+                    <video *ngIf="item.mediaType === 'video'" [src]="item.mediaUrl" controls class="w-full h-full object-cover bg-black"></video>
+                </div>
+                <p class="text-gray-700 mb-2">Uploaded by: <strong>{{ item.ownerId?.substring(0, 8) + '...' }}</strong></p>
+                <p class="text-gray-500 text-sm mb-4">{{ item.timestamp | date:'medium' }}</p>
+                <div class="flex items-center">
+                  <button mat-icon-button (click)="likeMedia(item)"
+                          class="flex items-center p-2 rounded-full transition-colors duration-200 text-sm"
+                          [ngClass]="{'text-red-500 bg-red-100': userHasLiked(item), 'text-gray-500 hover:text-red-500 hover:bg-gray-100': !userHasLiked(item)}">
+                      <mat-icon class="mr-1 text-base">{{ userHasLiked(item) ? 'favorite' : 'favorite_border' }}</mat-icon>
+                      <span class="whitespace-nowrap">{{ item.likesCount || 0 }} Likes</span>
+                  </button>
+                </div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+</div>

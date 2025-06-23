@@ -1,0 +1,108 @@
+<div class="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 py-10 px-4">
+  <app-message-box *ngIf="showMessageBox" [message]="message" (onClose)="closeMessageBox()"></app-message-box>
+
+  <div *ngIf="isLoading" class="text-center text-gray-600 mb-6">Loading profile...</div>
+
+  <div *ngIf="userProfile && !isLoading" class="max-w-xl mx-auto bg-white rounded-xl shadow-2xl p-8 transform transition-all duration-300 hover:scale-[1.01]">
+    <h2 class="text-4xl font-extrabold text-center text-gray-900 mb-8">My Profile</h2>
+    <div class="flex flex-col items-center mb-6">
+      <div class="relative w-32 h-32 mb-4 rounded-full overflow-hidden border-4 border-white shadow-lg flex items-center justify-center bg-gray-200">
+        <img *ngIf="profilePicturePreviewUrl" [src]="profilePicturePreviewUrl" alt="Profile Picture" class="w-full h-full object-cover">
+        <div *ngIf="!profilePicturePreviewUrl" class="w-full h-full flex items-center justify-center text-gray-500 text-6xl font-bold">
+          {{ userProfile.displayName ? userProfile.displayName.charAt(0).toUpperCase() : (userProfile.uid ? userProfile.uid.charAt(0).toUpperCase() : '') }}
+        </div>
+        <label *ngIf="isEditing" for="profile-picture-upload" class="absolute bottom-0 right-0 p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white cursor-pointer shadow-md">
+          <mat-icon>photo_camera</mat-icon>
+          <input type="file" id="profile-picture-upload" class="hidden" accept="image/*" (change)="onProfilePictureSelected($event)">
+        </label>
+      </div>
+
+      <mat-progress-bar mode="determinate" [value]="pictureUploadProgress" *ngIf="isUploadingPicture" class="w-full max-w-xs mb-2"></mat-progress-bar>
+      <p *ngIf="isUploadingPicture" class="text-sm text-blue-600 mb-4">Uploading picture ({{ pictureUploadProgress | number:'1.0-0' }}%)...</p>
+
+      <p class="text-sm text-gray-500 mb-2">
+        Your ID:
+        <span class="font-mono text-xs bg-gray-100 p-1 rounded"
+          >{{ userProfile.uid }}</span
+        >
+      </p>
+
+      <ng-container *ngIf="isEditing; else displayMode">
+        <mat-form-field appearance="outline" class="w-full mb-2">
+          <mat-label>Display Name</mat-label>
+          <input matInput [(ngModel)]="editDisplayName" name="displayName" required class="rounded-lg">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full mb-4">
+          <mat-label>Bio</mat-label>
+          <textarea matInput [(ngModel)]="editBio" name="bio" rows="3" class="resize-none rounded-lg"></textarea>
+        </mat-form-field>
+        <mat-checkbox [(ngModel)]="editIsPrivate" name="isPrivate" color="primary" class="mb-6">Private Account</mat-checkbox>
+      </ng-container>
+      <ng-template #displayMode>
+        <h3 class="text-3xl font-bold text-gray-800 mb-2">{{ userProfile.displayName }}</h3>
+        <p class="text-center text-gray-600 mb-4">{{ userProfile.bio }}</p>
+        <div class="flex items-center space-x-2 mb-6">
+          <span class="text-gray-700 font-semibold">Private Account:</span>
+          <span [ngClass]="userProfile.isPrivate ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'" class="px-3 py-1 rounded-full text-sm font-bold">
+            {{ userProfile.isPrivate ? 'Yes' : 'No' }}
+          </span>
+        </div>
+      </ng-template>
+
+      <div class="w-full flex justify-center space-x-4">
+        <ng-container *ngIf="isEditing; else editButton">
+          <button mat-flat-button color="primary" (click)="saveProfile()" [disabled]="isLoading || isUploadingPicture"
+                  class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full shadow-md transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75">
+            Save Profile
+          </button>
+          <button mat-flat-button color="warn" (click)="toggleEdit()" [disabled]="isLoading || isUploadingPicture"
+                  class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-full shadow-md transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75">
+            Cancel
+          </button>
+        </ng-container>
+        <ng-template #editButton>
+          <button mat-flat-button color="primary" (click)="toggleEdit()"
+                  class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full shadow-md transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+            Edit Profile
+          </button>
+        </ng-template>
+      </div>
+
+      <!-- Account Deletion Section -->
+      <div class="w-full mt-8 pt-6 border-t border-gray-200 flex flex-col items-center">
+        <h4 class="text-lg font-semibold text-red-600 mb-4">Danger Zone</h4>
+        <button mat-flat-button color="warn" (click)="confirmDeleteAccount()"
+                class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-md shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75">
+          Delete My Account
+        </button>
+
+        <!-- Delete Confirmation Dialog -->
+        <mat-card *ngIf="showDeleteConfirmation" class="w-full max-w-md p-6 mt-6 border border-red-300 shadow-xl">
+          <mat-card-title class="text-xl font-bold text-red-700 mb-4">Confirm Account Deletion</mat-card-title>
+          <mat-card-content class="flex flex-col space-y-4">
+            <p class="text-red-500 text-sm">This action cannot be undone. All your data will be permanently deleted.</p>
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Enter your email</mat-label>
+              <input matInput type="email" [(ngModel)]="deleteEmail" name="deleteEmail" required>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Enter your password</mat-label>
+              <input matInput type="password" [(ngModel)]="deletePassword" name="deletePassword" required>
+            </mat-form-field>
+            <button mat-flat-button color="warn" (click)="deleteAccount()" [disabled]="isDeletingAccount || !deleteEmail || !deletePassword"
+                    class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-md shadow-md transition-all duration-200">
+              {{ isDeletingAccount ? 'Deleting...' : 'Confirm Delete' }}
+            </button>
+            <button mat-button (click)="cancelDeleteAccount()" [disabled]="isDeletingAccount"
+                    class="text-gray-600 hover:text-gray-800">
+              Cancel
+            </button>
+            <p *ngIf="message && showMessageBox" [ngClass]="{'text-green-600': messageType === 'success', 'text-red-600': messageType === 'error'}" class="text-sm mt-2 text-center">
+              {{ message }}
+            </p>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+</div>

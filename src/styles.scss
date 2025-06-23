@@ -1,1 +1,60 @@
 /* You can add global styles to this file, and also import other style files */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Add Inter font import for global use */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+/* Basic body/html styles for full height and font */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box; /* Ensures padding/border are included in element's total width/height */
+}
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f3f4f6; /* Tailwind gray-100 as background */
+}
+
+/* Custom Angular Material Styling Overrides (Optional, but good for consistent looks) */
+.mat-card {
+    border-radius: 0.75rem; /* rounded-xl */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+}
+.mat-progress-bar-fill::after {
+    background-color: #4CAF50 !important; /* Green */
+}
+/* Custom styling for file input button (if using raw input) */
+.file-input-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem; /* py-3 px-6 */
+    border-radius: 0.5rem; /* rounded-md */
+    font-weight: 700; /* font-bold */
+    color: white;
+    background-color: #4f46e5; /* indigo-600 */
+    transition: background-color 0.2s, transform 0.2s;
+    cursor: pointer;
+    border: none;
+}
+.file-input-button:hover {
+    background-color: #4338ca; /* indigo-700 */
+    transform: translateY(-2px); /* slight lift */
+}
+
+/* ... existing global styles and Tailwind imports ... */
+
+/* Custom Angular Material Overrides */
+.mat-form-field-appearance-outline .mat-form-field-outline {
+  border-radius: 0.75rem !important; /* Tailwind's rounded-lg */
+}
+
+/* To ensure inner input matches outer border rounding */
+.mat-form-field-appearance-outline .mat-form-field-wrapper {
+  border-radius: 0.75rem !important;
+}
+
+/* ... existing mat-card, mat-progress-bar, file-input-button styles ... */

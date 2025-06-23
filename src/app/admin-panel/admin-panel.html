@@ -1,0 +1,45 @@
+<div class="container mx-auto p-4">
+  <app-message-box *ngIf="showMessageBox" [message]="message" (onClose)="closeMessageBox()"></app-message-box>
+
+  <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Admin Panel</h2>
+
+  <div *ngIf="!isAdmin" class="text-center text-red-600 mb-6">
+    Access Denied. You must be an administrator to view this page.
+  </div>
+
+  <div *ngIf="isAdmin">
+    <div *ngIf="isLoading" class="text-center text-gray-600 mb-6">Loading all users...</div>
+
+    <mat-card *ngIf="!isLoading && allUsers.length > 0" class="p-6">
+      <mat-card-title class="text-xl font-semibold mb-4">All Registered Users ({{ allUsers.length }})</mat-card-title>
+      <mat-card-content>
+        <p class="text-sm text-gray-600 mb-4">
+          Note: Deleting users (from Auth) typically requires Firebase Cloud Functions for security.
+          Role changes update Firestore directly.
+        </p>
+        <mat-list>
+          <mat-list-item *ngFor="let user of allUsers" class="flex items-center justify-between py-3 border-b last:border-b-0 border-gray-100">
+            <div class="flex items-center flex-grow">
+              <img [src]="user.profilePictureUrl || 'https://placehold.co/40x40/ccc/fff?text=?'" alt="Profile" class="w-10 h-10 rounded-full mr-3 object-cover">
+              <div>
+                <span class="text-gray-800 font-medium">{{ user.displayName }} ({{ user.email }})</span>
+                <p class="text-xs text-gray-500">UID: {{ user.uid }}</p>
+                <p class="text-xs text-gray-500">Role: <span [ngClass]="{'font-bold text-purple-700': user.role === 'admin'}">{{ user.role }}</span></p>
+              </div>
+            </div>
+            <div class="flex space-x-2">
+              <button mat-flat-button color="accent" (click)="changeUserRole(user.uid, user.role === 'admin' ? 'user' : 'admin')">
+                {{ user.role === 'admin' ? 'Demote to User' : 'Promote to Admin' }}
+              </button>
+              <button mat-stroked-button color="warn" (click)="deleteUserAsAdmin(user.uid, user.email)">Delete User (CF)</button>
+            </div>
+          </mat-list-item>
+        </mat-list>
+      </mat-card-content>
+    </mat-card>
+
+    <div *ngIf="!isLoading && allUsers.length === 0" class="text-center text-gray-600 mt-8">
+      No users registered yet.
+    </div>
+  </div>
+</div>

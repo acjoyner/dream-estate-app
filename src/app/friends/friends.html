@@ -1,0 +1,63 @@
+<div class="container mx-auto p-4">
+  <app-message-box *ngIf="showMessageBox" [message]="message" (onClose)="closeMessageBox()"></app-message-box>
+
+  <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Connect with Friends</h2>
+
+  <div *ngIf="isLoading" class="text-center text-gray-600 mb-6">Loading users...</div>
+
+  <mat-card *ngIf="!isLoading && currentUserId" class="p-6 mb-8 mat-card">
+    <mat-card-title class="text-xl font-semibold mb-4">Your User ID</mat-card-title>
+    <mat-card-content>
+      <p class="text-gray-600">Share this ID with others to connect:</p>
+      <p class="font-mono bg-gray-100 p-2 rounded text-blue-800 break-all mt-2">{{ currentUserId }}</p>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Pending Received Requests -->
+  <mat-card *ngIf="pendingReceivedRequests.length > 0 && !isLoading" class="p-6 mb-8 mat-card">
+    <mat-card-title class="text-xl font-semibold mb-4 text-orange-600">Pending Friend Requests ({{ pendingReceivedRequests.length }})</mat-card-title>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <mat-card *ngFor="let user of pendingReceivedRequests" class="flex flex-col items-center p-4 mat-card shadow-sm">
+        <img [src]="user.profilePictureUrl || 'https://placehold.co/60x60/ccc/fff?text=?'" alt="Profile" class="w-16 h-16 rounded-full mb-3 object-cover border border-gray-200">
+        <span class="text-lg font-medium text-gray-800 text-center">{{ user.displayName }}</span>
+        <span class="text-sm text-gray-500 mb-3 text-center">{{ user.email }}</span>
+        <div class="flex space-x-2 mt-auto">
+          <button mat-flat-button color="primary" (click)="acceptRequest(user.uid)" class="text-xs px-2 py-1">Accept</button>
+          <button mat-stroked-button color="warn" (click)="rejectRequest(user.uid)" class="text-xs px-2 py-1">Reject</button>
+        </div>
+      </mat-card>
+    </div>
+  </mat-card>
+
+  <!-- Your Friends List -->
+  <mat-card *ngIf="friendsList.length > 0 && !isLoading" class="p-6 mb-8 mat-card">
+    <mat-card-title class="text-xl font-semibold mb-4 text-green-600">Your Friends ({{ friendsList.length }})</mat-card-title>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <mat-card *ngFor="let user of friendsList" class="flex flex-col items-center p-4 mat-card shadow-sm">
+        <img [src]="user.profilePictureUrl || 'https://placehold.co/60x60/ccc/fff?text=?'" alt="Profile" class="w-16 h-16 rounded-full mb-3 object-cover border border-gray-200">
+        <span class="text-lg font-medium text-gray-800 text-center">{{ user.displayName }}</span>
+        <span class="text-sm text-gray-500 mb-3 text-center">{{ user.email }}</span>
+        <button mat-stroked-button color="warn" (click)="removeFriend(user.uid)" class="mt-auto">Remove Friend</button>
+      </mat-card>
+    </div>
+  </mat-card>
+
+  <!-- Other Users (Available to send requests to) -->
+  <mat-card *ngIf="otherUsers.length > 0 && !isLoading" class="p-6 mat-card">
+    <mat-card-title class="text-xl font-semibold mb-4 text-blue-600">Other Users</mat-card-title>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <mat-card *ngFor="let user of otherUsers" class="flex flex-col items-center p-4 mat-card shadow-sm">
+        <img [src]="user.profilePictureUrl || 'https://placehold.co/60x60/ccc/fff?text=?'" alt="Profile" class="w-16 h-16 rounded-full mb-3 object-cover border border-gray-200">
+        <span class="text-lg font-medium text-gray-800 text-center">{{ user.displayName }}</span>
+        <span class="text-sm text-gray-500 mb-3 text-center">{{ user.email }}</span>
+        <button mat-flat-button color="accent" (click)="sendRequest(user.uid)" [disabled]="isSentRequest(user)" class="mt-auto">
+          {{ isSentRequest(user) ? 'Request Sent' : 'Add Friend' }}
+        </button>
+      </mat-card>
+    </div>
+  </mat-card>
+
+  <div *ngIf="!isLoading && allUsers.length === 0" class="text-center text-gray-600 mt-8">
+    No other users found. Sign up more users to add friends!
+  </div>
+</div>

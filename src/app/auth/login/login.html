@@ -1,0 +1,29 @@
+<div class="flex items-center justify-center min-h-[calc(100vh-120px)] p-4">
+  <app-message-box *ngIf="showMessageBox" [message]="message" (onClose)="closeMessageBox()"></app-message-box>
+
+  <mat-card class="w-full max-w-md p-6">
+    <mat-card-title class="text-3xl font-bold text-center text-gray-800 mb-6">Login</mat-card-title>
+    <mat-card-content class="flex flex-col space-y-4">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Email</mat-label>
+        <input matInput type="email" [(ngModel)]="email" name="email" required class="rounded-lg"> <!-- Added rounded-lg -->
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Password</mat-label>
+        <input matInput type="password" [(ngModel)]="password" name="password" required class="rounded-lg"> <!-- Added rounded-lg -->
+      </mat-form-field>
+
+      <button mat-flat-button color="primary"
+              (click)="onLogin()"
+              [disabled]="isLoading || !email || !password"
+              class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-md shadow-md transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
+        {{ isLoading ? 'Logging in...' : 'Login' }}
+      </button>
+
+      <p *ngIf="message && !showMessageBox" [ngClass]="{'text-green-600': messageType === 'success', 'text-red-600': messageType === 'error'}" class="text-sm mt-2 text-center">
+        {{ message }}
+      </p>
+    </mat-card-content>
+  </mat-card>
+</div>
