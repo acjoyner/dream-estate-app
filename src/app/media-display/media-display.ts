@@ -1,5 +1,5 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Firebase } from '../services/firebase'; // Real Firebase service
+import { Component, OnInit, OnDestroy, ElementRef, ViewChildren, QueryList, AfterViewInit } from '@angular/core';
+import { Firebase } from '../services/firebase';
 import { Subscription } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -8,6 +8,18 @@ import { NgIf, NgFor, DatePipe, NgClass } from '@angular/common';
 import { MessageBox } from '../shared/message-box/message-box';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
+interface UserProfileForDisplay {
+    uid: string;
+    email: string;
+    displayName: string;
+    profilePictureUrl?: string;
+    isPrivate: boolean;
+    role: 'user' | 'admin';
+    friends: string[];
+    sentRequests: string[];
+    receivedRequests: string[];
+}
+
 @Component({
   selector: 'app-media-display',
   templateUrl: './media-display.html',
@@ -15,21 +27,30 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   standalone: true,
   imports: [MatCardModule, MatButtonModule, MatIconModule, NgIf, NgFor, DatePipe, NgClass, MessageBox]
 })
-export class MediaDisplay implements OnInit, OnDestroy {
+export class MediaDisplay implements OnInit, OnDestroy, AfterViewInit {
   mediaItems: any[] = [];
   messageBox: string | null = null;
   currentUserId: string | null = null;
-  isAdmin: boolean = false; // New: To check if current user is admin
+  isAdmin: boolean = false;
+
+  allUsersMap: { [uid: string]: UserProfileForDisplay } = {};
+
+  isPlayingMap: { [mediaId: string]: boolean } = {};
+
+  @ViewChildren('videoPlayer') videoPlayers!: QueryList<ElementRef<HTMLVideoElement>>;
 
   private mediaSubscription: Subscription | undefined;
   private userIdSubscription: Subscription | undefined;
-  private isAdminSubscription: Subscription | undefined; // New subscription for admin status
+  private isAdminSubscription: Subscription | undefined;
+  private allUsersSubscription: Subscription | undefined;
+  private intersectionObserver: IntersectionObserver | undefined;
 
   constructor(private firebaseService: Firebase, private snackBar: MatSnackBar) { }
 
   ngOnInit(): void {
     this.userIdSubscription = this.firebaseService.userId$.subscribe(userId => {
       this.currentUserId = userId;
+      console.log('MediaDisplay: currentUserId updated:', this.currentUserId);
       if (userId) {
         if (this.mediaSubscription) {
             this.mediaSubscription.unsubscribe();
@@ -38,6 +59,7 @@ export class MediaDisplay implements OnInit, OnDestroy {
             next: (items) => {
                 this.mediaItems = items;
                 console.log('Real Firebase: Media items updated:', this.mediaItems);
+                setTimeout(() => this.setupIntersectionObserver(), 0);
             },
             error: (error) => {
                 console.error("Real Firebase: Error fetching media items:", error);
@@ -49,19 +71,106 @@ export class MediaDisplay implements OnInit, OnDestroy {
         if (this.mediaSubscription) {
             this.mediaSubscription.unsubscribe();
         }
+        this.destroyIntersectionObserver();
       }
     });
 
-    // New: Subscribe to admin status
     this.isAdminSubscription = this.firebaseService.isAdmin$.subscribe(isAdmin => {
       this.isAdmin = isAdmin;
+      console.log('MediaDisplay: isAdmin updated:', this.isAdmin);
     });
+
+    this.allUsersSubscription = this.firebaseService.getAllUserProfiles().subscribe({
+      next: (users) => {
+        this.allUsersMap = users.reduce((acc, user) => {
+          acc[user.uid] = user as UserProfileForDisplay;
+          return acc;
+        }, {} as { [uid: string]: UserProfileForDisplay });
+        console.log('Real Firebase: All users map updated for display names.');
+      },
+      error: (error) => {
+        console.error("Real Firebase: Error fetching all user profiles for display names:", error);
+      }
+    });
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => {
+        this.setupIntersectionObserver();
+    }, 100);
   }
 
   ngOnDestroy(): void {
     this.mediaSubscription?.unsubscribe();
     this.userIdSubscription?.unsubscribe();
-    this.isAdminSubscription?.unsubscribe(); // New: Unsubscribe admin status
+    this.isAdminSubscription?.unsubscribe();
+    this.allUsersSubscription?.unsubscribe();
+    this.destroyIntersectionObserver();
+  }
+
+  private setupIntersectionObserver(): void {
+    this.destroyIntersectionObserver();
+
+    if (this.videoPlayers && this.videoPlayers.length > 0) {
+        this.intersectionObserver = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                const video = entry.target as HTMLVideoElement;
+                const mediaItemId = video.dataset['mediaItemId'];
+
+                if (video && mediaItemId) {
+                    if (entry.isIntersecting && entry.intersectionRatio >= 0.9 && this.currentUserId) {
+                        video.play().then(() => {
+                            this.isPlayingMap[mediaItemId] = true;
+                        }).catch(e => {
+                            console.warn('Video play prevented by browser:', e);
+                            this.isPlayingMap[mediaItemId] = false;
+                        });
+                    } else {
+                        video.pause();
+                        this.isPlayingMap[mediaItemId] = false;
+                    }
+                }
+            });
+        }, {
+            threshold: 0.9
+        });
+
+        this.videoPlayers.forEach(videoRef => {
+            this.intersectionObserver!.observe(videoRef.nativeElement);
+        });
+        console.log('IntersectionObserver set up for videos.');
+    } else {
+        console.log('No video players found for IntersectionObserver setup yet or media not loaded.');
+    }
+  }
+
+  private destroyIntersectionObserver(): void {
+    if (this.intersectionObserver) {
+      this.intersectionObserver.disconnect();
+      this.intersectionObserver = undefined;
+      console.log('IntersectionObserver destroyed.');
+    }
+  }
+
+  getUserDisplayName(uid: string): string {
+    return this.allUsersMap[uid]?.displayName || `User_${uid.substring(0, 6)}`;
+  }
+
+  toggleVideoPlayPause(mediaItemId: string): void {
+    const videoRef = this.videoPlayers.find(ref => ref.nativeElement.dataset['mediaItemId'] === mediaItemId);
+    if (videoRef) {
+      const videoElement = videoRef.nativeElement;
+      if (videoElement.paused) {
+        videoElement.play().then(() => {
+          this.isPlayingMap[mediaItemId] = true;
+        }).catch(e => console.warn('Manual video play prevented:', e));
+      } else {
+        videoElement.pause();
+        this.isPlayingMap[mediaItemId] = false;
+      }
+    } else {
+        console.warn(`Video element not found for mediaItemId: ${mediaItemId}`);
+    }
   }
 
   likeMedia(mediaItem: any): void {
@@ -80,23 +189,21 @@ export class MediaDisplay implements OnInit, OnDestroy {
     });
   }
 
-  // MODIFIED: onDeleteMedia to use MatSnackBar
   onDeleteMedia(mediaItem: any): void {
     if (!this.currentUserId) {
-        this.messageBox = 'You must be logged in to delete media.';
+        this.snackBar.open('You must be logged in to delete media.', 'Dismiss', { duration: 3000, panelClass: ['snackbar-error'] });
         return;
     }
 
     const snackBarRef = this.snackBar.open(`Are you sure you want to delete "${mediaItem.fileName}"?`, 'Yes, Delete', {
-      duration: 7000, // Duration before it auto-closes
+      duration: 7000,
       horizontalPosition: 'center',
       verticalPosition: 'bottom',
-      panelClass: ['snackbar-confirm'] // Optional custom class for styling
+      panelClass: ['snackbar-confirm']
     });
 
     snackBarRef.onAction().subscribe(async () => {
-      // User clicked 'Yes, Delete'
-      this.messageBox = null; // Clear previous messages
+      this.messageBox = null;
       try {
         await this.firebaseService.deleteMedia(mediaItem.id, mediaItem.ownerId, mediaItem.fileName).toPromise();
         this.snackBar.open(`"${mediaItem.fileName}" deleted successfully!`, 'Dismiss', {
@@ -109,8 +216,6 @@ export class MediaDisplay implements OnInit, OnDestroy {
         });
       }
     });
-    // If the snackbar closes without action (duration expires or user clicks elsewhere),
-    // we don't do anything, as it implies they didn't confirm.
   }
 
   userHasLiked(mediaItem: any): boolean {
@@ -119,5 +224,10 @@ export class MediaDisplay implements OnInit, OnDestroy {
 
   closeMessageBox(): void {
     this.messageBox = null;
+  }
+
+  // New: trackBy function for *ngFor
+  trackByMediaItem(index: number, item: any): string {
+    return item.id; // Use a unique identifier, like the media item's ID
   }
 }
