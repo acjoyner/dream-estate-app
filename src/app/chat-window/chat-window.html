@@ -3,7 +3,16 @@
 
   <mat-card class="flex flex-col w-11/12 max-w-2xl h-3/4 max-h-[80vh] mat-card rounded-xl shadow-2xl">
     <mat-card-header class="flex justify-between items-center p-4 border-b border-gray-200 bg-blue-600 text-white rounded-t-xl">
-      <mat-card-title class="text-xl font-bold">Chat with {{ otherParticipantName }}</mat-card-title>
+      <mat-card-title class="text-xl font-bold flex items-center space-x-2">
+        <span class="relative">
+          <img *ngIf="otherParticipantPic" [src]="otherParticipantPic" alt="Profile" class="w-8 h-8 rounded-full object-cover">
+          <div *ngIf="!otherParticipantPic" class="w-8 h-8 rounded-full bg-blue-200 flex items-center justify-center text-sm font-bold text-blue-800">
+            {{ otherParticipantName?.charAt(0)?.toUpperCase() || '?' }}
+          </div>
+          <div class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white" [ngClass]="getOnlineStatusClass(otherParticipantOnlineStatus)"></div>
+        </span>
+        <span>Chat with {{ otherParticipantName }}</span>
+      </mat-card-title>
       <button mat-icon-button (click)="onClose()" class="text-white hover:text-gray-200 p-2 rounded-full hover:bg-blue-700 transition-colors">
         <mat-icon>close</mat-icon>
       </button>
@@ -13,12 +22,14 @@
       <div *ngIf="isLoadingMessages" class="text-center text-gray-500 italic">Loading messages...</div>
       <div *ngIf="!isLoadingMessages && messages.length === 0" class="text-center text-gray-500 italic">Start the conversation!</div>
 
-      <!-- FIX: Correct trackBy usage -->
       <div *ngFor="let msg of messages; trackBy: trackByMessageId" [ngClass]="{'justify-end': msg.isCurrentUser, 'justify-start': !msg.isCurrentUser}" class="flex">
         <div [ngClass]="{'bg-blue-500 text-white rounded-br-none': msg.isCurrentUser, 'bg-gray-200 text-gray-800 rounded-bl-none': !msg.isCurrentUser}"
              class="max-w-[70%] p-3 rounded-xl shadow">
           <div class="flex items-center mb-1">
             <img *ngIf="getSenderProfilePic(msg.senderId)" [src]="getSenderProfilePic(msg.senderId)" alt="Profile" class="w-6 h-6 rounded-full mr-2 object-cover">
+            <div *ngIf="!getSenderProfilePic(msg.senderId)" class="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-sm font-bold text-gray-700 mr-2">
+              {{ getSenderDisplayName(msg.senderId)?.charAt(0)?.toUpperCase() || '?' }}
+            </div>
             <span class="font-semibold text-sm">{{ getSenderDisplayName(msg.senderId) }}</span>
           </div>
           <p class="text-sm break-words">{{ msg.text }}</p>

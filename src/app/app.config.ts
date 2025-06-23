@@ -6,6 +6,7 @@ import {
 import { provideRouter } from '@angular/router'; // Ensure this is imported
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient } from '@angular/common/http';
+import { getDatabase, provideDatabase } from '@angular/fire/database'; // <--- ADDED: RTDB Imports
 
 // Firebase Imports for @angular/fire
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
@@ -38,6 +39,7 @@ export const appConfig: ApplicationConfig = {
     provideAuth(() => getAuth()),
     provideFirestore(() => getFirestore()),
     provideStorage(() => getStorage()),
+    provideDatabase(() => getDatabase()), 
   ],
 
 };
