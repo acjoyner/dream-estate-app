@@ -20,13 +20,17 @@ interface UserProfile {
   isPrivate: boolean;
   profilePictureUrl?: string;
   createdAt: any;
-  role: 'user' | 'admin'; // Added role
+  role: 'user' | 'admin';
+  friends: string[];
+  sentRequests: string[];
+  receivedRequests: string[];
+  chatRooms: string[];
 }
 
 @Component({
   selector: 'app-profile',
-  templateUrl: './profile.html',
-  styleUrls: ['./profile.scss'],
+  templateUrl: './profile.html', // Corrected path
+  styleUrls: ['./profile.scss'], // Corrected path
   standalone: true,
   imports: [
     FormsModule, NgIf, NgClass, CommonModule,
@@ -45,18 +49,18 @@ export class Profile implements OnInit, OnDestroy {
   messageType: string = '';
   showMessageBox: boolean = false;
 
-  // Temporary state for editing
   editDisplayName: string = '';
   editBio: string = '';
   editIsPrivate: boolean = false;
   selectedProfilePictureFile: File | null = null;
   profilePicturePreviewUrl: string | ArrayBuffer | null = null;
 
-  // For account deletion
+  // --- FIX: ADDED MISSING PROPERTIES FOR ACCOUNT DELETION ---
   showDeleteConfirmation: boolean = false;
   deleteEmail: string = '';
   deletePassword: string = '';
   isDeletingAccount: boolean = false;
+  // --- END FIX ---
 
   private userIdSubscription: Subscription | undefined;
   private profileSubscription: Subscription | undefined;
@@ -67,7 +71,7 @@ export class Profile implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.userIdSubscription = this.firebaseService.userId$.subscribe(userId => {
       if (userId) {
-        this.isLoading = true; // Set loading true when user ID is available
+        this.isLoading = true;
         this.profileSubscription = this.firebaseService.getUserProfile(userId).subscribe({
             next: (profile) => {
                 if (profile) {
@@ -139,9 +143,6 @@ export class Profile implements OnInit, OnDestroy {
             this.profilePictureUploadSubscription = this.firebaseService.uploadProfilePicture(this.selectedProfilePictureFile!, this.userProfile!.uid).subscribe({
                 next: (progress) => {
                     this.pictureUploadProgress = progress;
-                    if (progress === 100) {
-                        resolve();
-                    }
                 },
                 error: (error) => {
                     console.error('Real Firebase: Profile picture upload failed:', error);
@@ -152,8 +153,10 @@ export class Profile implements OnInit, OnDestroy {
                     reject(error);
                 },
                 complete: () => {
+                    console.log('Real Firebase: Profile picture upload completed and profile updated.');
                     this.isUploadingPicture = false;
                     this.selectedProfilePictureFile = null;
+                    resolve();
                 }
             });
         });
@@ -202,6 +205,8 @@ export class Profile implements OnInit, OnDestroy {
       const reader = new FileReader();
       reader.onload = e => this.profilePicturePreviewUrl = reader.result;
       reader.readAsDataURL(file);
+      this.message = '';
+      this.showMessageBox = false;
     } else {
       this.selectedProfilePictureFile = null;
       this.profilePicturePreviewUrl = this.userProfile?.profilePictureUrl ?? null;
@@ -212,36 +217,38 @@ export class Profile implements OnInit, OnDestroy {
   }
 
   confirmDeleteAccount(): void {
-    this.showDeleteConfirmation = true;
+    this.showDeleteConfirmation = true; // Set to true to show confirmation dialog
     this.message = '';
     this.messageType = '';
     this.showMessageBox = false;
-    this.deleteEmail = this.userProfile?.email || ''; // Pre-fill email
+    this.deleteEmail = this.userProfile?.email || '';
     this.deletePassword = '';
   }
 
   cancelDeleteAccount(): void {
-    this.showDeleteConfirmation = false;
+    this.showDeleteConfirmation = false; // Set to false to hide confirmation dialog
     this.message = '';
+    this.showMessageBox = false;
   }
 
   async deleteAccount(): Promise<void> {
     if (!this.userProfile?.email || !this.deletePassword) {
       this.message = 'Please enter your email and password to confirm.';
       this.messageType = 'error';
+      this.showMessageBox = true;
       return;
     }
 
     this.isDeletingAccount = true;
     this.message = '';
+    this.showMessageBox = false;
 
     try {
-      // Firebase service handles re-auth and deletion
       await this.firebaseService.deleteCurrentUser(this.userProfile.email, this.deletePassword).toPromise();
       this.message = 'Account deleted successfully!';
       this.messageType = 'success';
-      this.showDeleteConfirmation = false;
-      // App component will redirect to login on auth state change
+      this.showDeleteConfirmation = false; // Hide dialog on success
+      this.showMessageBox = true;
     } catch (error: any) {
       console.error('Account deletion failed:', error);
       let errorMessage = 'Failed to delete account. Please try again.';

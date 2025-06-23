@@ -36,6 +36,7 @@ export class MediaDisplay implements OnInit, OnDestroy, AfterViewInit {
   allUsersMap: { [uid: string]: UserProfileForDisplay } = {};
 
   isPlayingMap: { [mediaId: string]: boolean } = {};
+  isInteractingWithControls: boolean = false; // New: Flag to indicate user is interacting with controls area
 
   @ViewChildren('videoPlayer') videoPlayers!: QueryList<ElementRef<HTMLVideoElement>>;
 
@@ -156,7 +157,24 @@ export class MediaDisplay implements OnInit, OnDestroy, AfterViewInit {
     return this.allUsersMap[uid]?.displayName || `User_${uid.substring(0, 6)}`;
   }
 
-  toggleVideoPlayPause(mediaItemId: string): void {
+  // FIX: Implemented startInteraction and endInteraction methods
+  startInteraction(event: Event): void {
+    event.stopPropagation(); // Stop click from propagating to the main media wrapper
+    this.isInteractingWithControls = true;
+    // console.log('Start Interaction (Controls Area)'); // Diagnostic
+  }
+
+  endInteraction(): void {
+    this.isInteractingWithControls = false;
+    // console.log('End Interaction (Controls Area)'); // Diagnostic
+  }
+
+  // Method now accepts optional event parameter
+  toggleVideoPlayPause(mediaItemId: string, event?: Event): void {
+    if (event) {
+        event.stopPropagation(); // Prevent scroll snapping from triggering if clicking directly on video
+    }
+
     const videoRef = this.videoPlayers.find(ref => ref.nativeElement.dataset['mediaItemId'] === mediaItemId);
     if (videoRef) {
       const videoElement = videoRef.nativeElement;
@@ -173,7 +191,9 @@ export class MediaDisplay implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  likeMedia(mediaItem: any): void {
+  // Method now accepts optional event parameter
+  likeMedia(mediaItem: any, event?: Event): void {
+    if (event) event.stopPropagation(); // Prevent scroll snapping
     if (!this.currentUserId) {
         this.messageBox = 'Please log in to like items.';
         return;
@@ -189,7 +209,9 @@ export class MediaDisplay implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  onDeleteMedia(mediaItem: any): void {
+  // Method now accepts optional event parameter
+  onDeleteMedia(mediaItem: any, event?: Event): void {
+    if (event) event.stopPropagation(); // Prevent scroll snapping
     if (!this.currentUserId) {
         this.snackBar.open('You must be logged in to delete media.', 'Dismiss', { duration: 3000, panelClass: ['snackbar-error'] });
         return;
@@ -226,8 +248,7 @@ export class MediaDisplay implements OnInit, OnDestroy, AfterViewInit {
     this.messageBox = null;
   }
 
-  // New: trackBy function for *ngFor
   trackByMediaItem(index: number, item: any): string {
-    return item.id; // Use a unique identifier, like the media item's ID
+    return item.id;
   }
 }

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Firebase } from '../../services/firebase'; // Real Firebase service
+import { Firebase } from '../../services/firebase';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -25,7 +25,7 @@ export class Signup implements OnInit {
   isLoading: boolean = false;
   message: string = '';
   messageType: string = '';
-  showMessageBox: boolean = false;
+  showMessageBox: boolean = false; // Ensure this is initialized to false
 
   constructor(private firebaseService: Firebase) { }
 
@@ -34,7 +34,6 @@ export class Signup implements OnInit {
   async onSignup(): Promise<void> {
     this.isLoading = true;
     this.message = '';
-    this.messageType = '';
     this.showMessageBox = false;
 
     if (this.password !== this.confirmPassword) {
@@ -53,11 +52,11 @@ export class Signup implements OnInit {
     }
 
     try {
-      // Use real Firebase signup method
       const success = await this.firebaseService.signUp(this.email, this.password).toPromise();
       if (success) {
         this.message = 'Signup successful! You are now logged in.';
         this.messageType = 'success';
+        // No need to showMessageBox here, redirection will happen
       } else {
         this.message = 'Signup failed: Email may already exist or invalid.';
         this.messageType = 'error';
@@ -67,19 +66,11 @@ export class Signup implements OnInit {
       console.error('Signup error:', error);
       let errorMessage = 'Signup failed.';
       if (error.code) {
-        // Firebase Auth error codes
         switch (error.code) {
-          case 'auth/email-already-in-use':
-            errorMessage = 'Email already in use. Please try logging in or use a different email.';
-            break;
-          case 'auth/invalid-email':
-            errorMessage = 'Invalid email address format.';
-            break;
-          case 'auth/weak-password':
-            errorMessage = 'Password is too weak. Must be at least 6 characters.';
-            break;
-          default:
-            errorMessage = `Signup failed: ${error.message}`;
+          case 'auth/email-already-in-use': errorMessage = 'Email already in use. Please try logging in or use a different email.'; break;
+          case 'auth/invalid-email': errorMessage = 'Invalid email address format.'; break;
+          case 'auth/weak-password': errorMessage = 'Password is too weak. Must be at least 6 characters.'; break;
+          default: errorMessage = `Signup failed: ${error.message}`;
         }
       }
       this.message = errorMessage;

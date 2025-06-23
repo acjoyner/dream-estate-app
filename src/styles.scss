@@ -56,5 +56,9 @@ body {
 .mat-form-field-appearance-outline .mat-form-field-wrapper {
   border-radius: 0.75rem !important;
 }
+mdc-notched-outline__notch {
+  border-right: none;
+}
+
 
 /* ... existing mat-card, mat-progress-bar, file-input-button styles ... */

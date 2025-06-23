@@ -5,34 +5,36 @@
       No media available. Upload some!
   </div>
 
-  <!-- FIX: Add trackBy to *ngFor -->
   <ng-container *ngFor="let item of mediaItems; let i = index; trackBy: trackByMediaItem">
     <div class="media-item-wrapper relative w-full h-screen flex flex-col justify-center items-center snap-center bg-black">
       <!-- Media Player (Image or Video) -->
-      <div class="media-content-wrapper w-full h-full flex items-center justify-center overflow-hidden relative">
+      <div class="media-content-wrapper w-full h-full flex items-center justify-center overflow-hidden relative"
+           (click)="toggleVideoPlayPause(item.id, $event)">
         <img *ngIf="item.mediaType === 'image'" [src]="item.mediaUrl" alt="Uploaded Image" class="max-w-full max-h-full object-contain">
-        <video *ngIf="item.mediaType === 'video'" controls #videoPlayer [src]="item.mediaUrl" loop muted playsinline [attr.data-media-item-id]="item.id" class="max-w-full max-h-full object-contain bg-black"></video>
+        <video *ngIf="item.mediaType === 'video'"  controls #videoPlayer [src]="item.mediaUrl" loop muted playsinline [attr.data-media-item-id]="item.id" class="max-w-full max-h-full object-contain bg-black"></video>
 
-        <!-- Play/Pause Button Overlay for Videos -->
-        <button *ngIf="item.mediaType === 'video'" mat-icon-button (click)="toggleVideoPlayPause(item.id)"
+        <!-- Play/Pause Button Overlay for Videos (Visible when paused) -->
+        <button *ngIf="item.mediaType === 'video' && !isPlayingMap[item.id]" mat-icon-button (click)="toggleVideoPlayPause(item.id, $event)"
                 class="absolute text-white text-opacity-80 hover:text-opacity-100 transition-opacity duration-200 z-10"
                 style="font-size: 80px; width: 80px; height: 80px; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-          <mat-icon>{{ isPlayingMap[item.id] ? 'pause_circle_filled' : 'play_circle_filled' }}</mat-icon>
+          <mat-icon>play_circle_filled</mat-icon>
         </button>
       </div>
 
-      <!-- Overlay Controls and Info -->
-      <div class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent text-white flex justify-between items-end z-10">
-        <!-- Left side: Text Info -->
+      <!-- Overlay Controls and Info (Top bar for buttons) -->
+      <div class="absolute inset-x-0 top-0 p-4 bg-gradient-to-b from-black/80 to-transparent text-white flex justify-between items-start z-20"
+           (mousedown)="startInteraction($event)" (mouseup)="endInteraction()"
+           (touchstart)="startInteraction($event)" (touchend)="endInteraction()">
+        <!-- Left side: Text Info (e.g., filename, user) -->
         <div class="flex flex-col items-start space-y-1 pr-4 flex-grow">
           <p class="font-bold text-lg text-shadow-md">{{ item.fileName }}</p>
           <p class="text-sm text-shadow-sm">Uploaded by: {{ getUserDisplayName(item.ownerId) }} on {{ item.timestamp?.toDate() | date:'medium' }}</p>
         </div>
 
-        <!-- Right side: Like and Delete Buttons (Vertical Stack) -->
-        <div class="flex flex-col items-center space-y-4">
+        <!-- Right side: Like and Delete Buttons (Horizontal) -->
+        <div class="flex items-center space-x-2 ml-auto">
           <!-- Like Button -->
-          <button mat-icon-button (click)="likeMedia(item)"
+          <button mat-icon-button (click)="likeMedia(item, $event)"
                   class="flex flex-col items-center p-2 rounded-full text-white bg-black/50 hover:bg-black/70 transition-colors duration-200 transform hover:scale-110"
                   [ngClass]="{'text-red-500 bg-red-800/80': userHasLiked(item), 'text-white': !userHasLiked(item)}"
                   style="width: 56px; height: 56px; font-size: 24px;">
@@ -40,15 +42,21 @@
               <span class="whitespace-nowrap text-xs font-semibold">{{ item.likesCount || 0 }} Likes</span>
           </button>
 
-          <!-- Delete Button -->
+          <!-- CRITICAL FIX: Delete Button (Only visible if owner or admin) -->
           <button *ngIf="currentUserId && (item.ownerId === currentUserId || isAdmin)"
-                  mat-icon-button color="warn" (click)="onDeleteMedia(item)"
+                  mat-icon-button color="warn" (click)="onDeleteMedia(item, $event)"
                   class="flex flex-col items-center p-2 rounded-full text-white bg-black/50 hover:bg-black/70 transition-colors duration-200 transform hover:scale-110"
                   style="width: 56px; height: 56px; font-size: 24px;">
               <mat-icon style="font-size: 28px; width: 28px; height: 28px;">delete</mat-icon>
               <span class="whitespace-nowrap text-xs font-semibold">Delete</span>
           </button>
         </div>
+      </div>
+
+      <!-- Text Info at Bottom (Original location, still has text shadow and gradient) -->
+      <div class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent text-white flex flex-col items-start space-y-1 pr-4 z-10">
+          <p class="font-bold text-lg text-shadow-md">{{ item.fileName }}</p>
+          <p class="text-sm text-shadow-sm">Uploaded by: {{ getUserDisplayName(item.ownerId) }} on {{ item.timestamp?.toDate() | date:'medium' }}</p>
       </div>
     </div>
   </ng-container>

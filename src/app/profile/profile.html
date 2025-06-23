@@ -6,19 +6,26 @@
   <div *ngIf="userProfile && !isLoading" class="max-w-xl mx-auto bg-white rounded-xl shadow-2xl p-8 transform transition-all duration-300 hover:scale-[1.01]">
     <h2 class="text-4xl font-extrabold text-center text-gray-900 mb-8">My Profile</h2>
     <div class="flex flex-col items-center mb-6">
+      <!-- Profile Picture Display and Upload UI -->
       <div class="relative w-32 h-32 mb-4 rounded-full overflow-hidden border-4 border-white shadow-lg flex items-center justify-center bg-gray-200">
+        <!-- Display actual image if available, otherwise display initial -->
         <img *ngIf="profilePicturePreviewUrl" [src]="profilePicturePreviewUrl" alt="Profile Picture" class="w-full h-full object-cover">
-        <div *ngIf="!profilePicturePreviewUrl" class="w-full h-full flex items-center justify-center text-gray-500 text-6xl font-bold">
+        <div *ngIf="!profilePicturePreviewUrl" class="w-full h-full bg-blue-200 flex items-center justify-center text-xl font-bold text-blue-800">
           {{ userProfile.displayName ? userProfile.displayName.charAt(0).toUpperCase() : (userProfile.uid ? userProfile.uid.charAt(0).toUpperCase() : '') }}
         </div>
+
+        <!-- Camera Icon/Upload Button (only visible in editing mode) -->
         <label *ngIf="isEditing" for="profile-picture-upload" class="absolute bottom-0 right-0 p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white cursor-pointer shadow-md">
           <mat-icon>photo_camera</mat-icon>
+          <!-- Hidden file input that triggers onProfilePictureSelected -->
           <input type="file" id="profile-picture-upload" class="hidden" accept="image/*" (change)="onProfilePictureSelected($event)">
         </label>
       </div>
 
+      <!-- Picture Upload Progress Bar -->
       <mat-progress-bar mode="determinate" [value]="pictureUploadProgress" *ngIf="isUploadingPicture" class="w-full max-w-xs mb-2"></mat-progress-bar>
       <p *ngIf="isUploadingPicture" class="text-sm text-blue-600 mb-4">Uploading picture ({{ pictureUploadProgress | number:'1.0-0' }}%)...</p>
+
 
       <p class="text-sm text-gray-500 mb-2">
         Your ID:
@@ -104,5 +111,3 @@
         </mat-card>
       </div>
     </div>
-  </div>
-</div>

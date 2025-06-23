@@ -1,9 +1,9 @@
 import {
   ApplicationConfig,
-  importProvidersFrom, // Keep this for FormsModule
+  importProvidersFrom,
 } from '@angular/core';
 
-import { provideRouter } from '@angular/router';
+import { provideRouter } from '@angular/router'; // Ensure this is imported
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient } from '@angular/common/http';
 
@@ -13,12 +13,8 @@ import { getAuth, provideAuth } from '@angular/fire/auth';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import { getStorage, provideStorage } from '@angular/fire/storage';
 
-import { routes } from './app.routes';
-import { FormsModule } from '@angular/forms'; // FormsModule is an NgModule
-import { MatListModule } from '@angular/material/list';
-// Angular Material Snackbar Module
-import { MatSnackBarModule } from '@angular/material/snack-bar'; // <--- ADDED: MatSnackBarModule
-
+import { routes } from './app.routes'; // Ensure this is imported
+import { FormsModule } from '@angular/forms';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyDMGIHuEotmRpahQGmC5Bq3cWaacGq4fBs',
@@ -31,28 +27,17 @@ const firebaseConfig = {
 };
 
 export const appConfig: ApplicationConfig = {
-  providers: [
-    // Core Angular Providers (directly added to providers array)
+   providers: [
     provideAnimations(),
-    provideRouter(routes),
+    provideRouter(routes), // This provides the routing configuration
     provideHttpClient(),
-    MatListModule, // <-- Add MatListModule here
 
-    // NgModules that need their providers imported into the standalone app
-    // FormsModule is an NgModule, so it uses importProvidersFrom
-    importProvidersFrom(FormsModule, MatSnackBarModule), // Correct usage for NgModule
+    importProvidersFrom(FormsModule),
 
-    // Firebase Providers from @angular/fire
-    // These functions themselves return EnvironmentProviders, so they are added directly
-    // to the providers array, WITHOUT importProvidersFrom.
     provideFirebaseApp(() => initializeApp(firebaseConfig)),
     provideAuth(() => getAuth()),
     provideFirestore(() => getFirestore()),
     provideStorage(() => getStorage()),
-
-    // IMPORTANT: Angular Material modules like MatToolbarModule, MatButtonModule, etc.
-    // are imported DIRECTLY into the `imports` array of each STANDALONE COMPONENT
-    // that uses them (e.g., AppComponent, Login, MediaUpload, MediaDisplay, Profile, MessageBox).
-    // They should NOT be listed here in app.config.ts as global providers.
   ],
+
 };

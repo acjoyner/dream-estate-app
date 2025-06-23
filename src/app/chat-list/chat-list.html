@@ -1,0 +1,31 @@
+<div class="container mx-auto p-4">
+  <app-message-box *ngIf="showMessageBox" [message]="message" (onClose)="closeMessageBox()"></app-message-box>
+
+  <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Your Chats</h2>
+
+  <div *ngIf="isLoading" class="text-center text-gray-600 mb-6">Loading chats...</div>
+
+  <mat-card *ngIf="!isLoading" class="p-6 mat-card">
+    <mat-card-title *ngIf="chatRooms.length === 0" class="text-xl font-semibold mb-4 text-gray-600 text-center">
+      No active chats. Start one from the Friends page!
+    </mat-card-title>
+
+    <mat-list *ngIf="chatRooms.length > 0">
+      <!-- FIX: Correct trackBy usage -->
+      <mat-list-item *ngFor="let room of chatRooms; trackBy: trackByChatRoomId" (click)="onSelectChat(room.id)"
+                     class="flex items-center py-3 border-b last:border-b-0 border-gray-100 hover:bg-gray-50 cursor-pointer">
+        <div class="relative w-12 h-12 rounded-full overflow-hidden mr-4 flex-shrink-0">
+          <img *ngIf="room.otherParticipantPic" [src]="room.otherParticipantPic" alt="Profile" class="w-full h-full object-cover">
+          <div *ngIf="!room.otherParticipantPic" class="w-full h-full bg-blue-200 flex items-center justify-center text-xl font-bold text-blue-800">
+            {{ getParticipantInitial(room.otherParticipantName) }}
+          </div>
+        </div>
+        <div class="flex-grow">
+          <p class="text-lg font-medium text-gray-800">{{ room.otherParticipantName }}</p>
+          <p *ngIf="room.lastMessageText" class="text-sm text-gray-600 truncate">{{ room.lastMessageText }}</p>
+        </div>
+        <span *ngIf="room.lastMessageTimestamp" class="text-xs text-gray-500 ml-4">{{ room.lastMessageTimestamp?.toDate() | date:'shortTime' }}</span>
+      </mat-list-item>
+    </mat-list>
+  </mat-card>
+</div>
