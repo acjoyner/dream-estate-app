@@ -1,18 +1,23 @@
-<div class="flex items-center justify-center min-h-[calc(100vh-120px)] p-4">
+ <div class="absolute inset-0 bg-black opacity-40 "></div> <!-- Add this overlay -->
+<div class="flex items-center justify-center min-h-[calc(100vh-120px)] p-4" style="background-image: url('../../../assets/building.jpg');background-size: cover; background-position: center center;">
+  
   <app-message-box *ngIf="showMessageBox" [message]="message" (onClose)="closeMessageBox()"></app-message-box>
+  <!-- Overlay for text readability (optional, but recommended) -->
+ 
 
-  <mat-card class="w-full max-w-md p-6">
+  <mat-card class="relative z-10 w-full max-w-md p-6 rounded-xl"> 
     <mat-card-title class="text-3xl font-bold text-center text-gray-800 mb-6">Login</mat-card-title>
     <mat-card-content class="flex flex-col space-y-4">
-      <mat-form-field appearance="outline" class="w-full">
+      <mat-form-field class="w-full">
         <mat-label>Email</mat-label>
         <input matInput type="email" [(ngModel)]="email" name="email" required class="rounded-lg">
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="w-full">
+      <mat-form-field  class="w-full">
         <mat-label>Password</mat-label>
         <input matInput type="password" [(ngModel)]="password" name="password" required class="rounded-lg">
       </mat-form-field>
+      
 
       <button mat-flat-button color="primary"
               (click)="onLogin()"

@@ -13,9 +13,11 @@ import { NotFound } from './not-found/not-found'; // New: Import NotFound compon
 import { authGuard } from './guards/auth-guard';
 import { adminGuard } from './guards/admin-guard';
 import { redirectLoggedInToMainGuard } from './guards/redirect-logged-in-to-main-guard';
+import { Home } from './home/home';
 
 export const routes: Routes = [
   // Public routes accessible to anyone (even logged out)
+  { path: 'home', component: Home }, // New: Home route
   { path: 'login', component: Login, canActivate: [redirectLoggedInToMainGuard] },
   { path: 'signup', component: Signup, canActivate: [redirectLoggedInToMainGuard] },
   { path: 'resources', component: HelpfulLinks },

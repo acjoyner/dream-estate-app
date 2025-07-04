@@ -8,7 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { NgIf, NgClass } from '@angular/common';
 import { MessageBox } from '../../shared/message-box/message-box';
 // Removed MatIconModule as it's only for Apple logo now
-// import { MatIconModule } from '@angular/material/icon';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-login',
@@ -17,7 +17,7 @@ import { MessageBox } from '../../shared/message-box/message-box';
   standalone: true,
   imports: [
     FormsModule, MatCardModule, MatButtonModule, MatFormFieldModule, MatInputModule, NgIf, NgClass,
-    MessageBox
+    MessageBox, MatIconModule
     // Removed MatIconModule from imports
   ]
 })

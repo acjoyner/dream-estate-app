@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Firebase } from '../services/firebase'; // Real Firebase service
+import { Firebase } from '../services/firebase';
 import { Subscription } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -7,13 +7,19 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { NgClass, NgIf } from '@angular/common';
 import { MessageBox } from '../shared/message-box/message-box';
+import { MatFormFieldModule } from '@angular/material/form-field'; // NEW: For MatFormField
+import { MatInputModule } from '@angular/material/input';     // NEW: For MatInput
+import { FormsModule } from '@angular/forms'; // NEW: For ngModel
 
 @Component({
   selector: 'app-media-upload',
   templateUrl: './media-upload.html',
   styleUrls: ['./media-upload.scss'],
   standalone: true,
-  imports: [MatCardModule, MatProgressBarModule, MatButtonModule, MatIconModule, NgIf, MessageBox, NgClass]
+  imports: [
+    MatCardModule, MatProgressBarModule, MatButtonModule, MatIconModule, NgIf, MessageBox, NgClass,
+    MatFormFieldModule, MatInputModule, FormsModule // NEW: Added for caption input
+  ]
 })
 export class MediaUpload implements OnInit, OnDestroy {
   selectedFile: File | null = null;
@@ -22,6 +28,7 @@ export class MediaUpload implements OnInit, OnDestroy {
   message: string = '';
   messageType: string = '';
   showMessageBox: boolean = false;
+  caption: string = ''; // <--- NEW: Caption property
 
   currentUserId: string | null = null;
   isServiceReady: boolean = false;
@@ -78,8 +85,8 @@ export class MediaUpload implements OnInit, OnDestroy {
     const file = this.selectedFile;
     const mediaType = file.type.startsWith('image/') ? 'image' : (file.type.startsWith('video/') ? 'video' : 'other');
 
-    // Use real Firebase uploadMedia
-    this.uploadSubscription = this.firebaseService.uploadMedia(file, this.currentUserId, mediaType).subscribe({
+    // FIX: Pass the caption to the service
+    this.uploadSubscription = this.firebaseService.uploadMedia(file, this.currentUserId, mediaType, this.caption).subscribe({
       next: (progress) => {
         this.uploadProgress = progress;
         console.log('Real Firebase: Upload is ' + progress + '% done');
@@ -94,7 +101,8 @@ export class MediaUpload implements OnInit, OnDestroy {
       complete: () => {
         this.message = 'Upload successful!';
         this.messageType = 'success';
-        this.selectedFile = null;
+        this.selectedFile = null; // Clear selected file
+        this.caption = ''; // <--- NEW: Clear caption after upload
         this.isUploading = false;
         this.uploadProgress = 0;
         this.showMessageBox = true;

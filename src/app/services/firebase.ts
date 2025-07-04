@@ -70,6 +70,7 @@ interface MediaItem {
   timestamp: any; // Firebase Timestamp type
   likes: string[];
   likesCount: number;
+  caption?: string; // Optional caption for media items
 }
 
 // FIX: Define UserProfile with ALL properties, marking optional where they truly can be missing from Firestore
@@ -1169,7 +1170,8 @@ export class Firebase implements OnDestroy {
   uploadMedia(
     file: File,
     ownerId: string,
-    mediaType: 'image' | 'video' | 'other'
+    mediaType: 'image' | 'video' | 'other',
+    caption?: string
   ): Observable<number> {
     const filePath = `artifacts/${
       this.canvasAppId
@@ -1208,6 +1210,7 @@ export class Firebase implements OnDestroy {
             timestamp: serverTimestamp(),
             likes: [],
             likesCount: 0,
+         
           });
           observer.next(100);
           observer.complete();

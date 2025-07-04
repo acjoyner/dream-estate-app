@@ -8,10 +8,9 @@
   <ng-container *ngFor="let item of mediaItems; let i = index; trackBy: trackByMediaItem">
     <div class="media-item-wrapper relative w-full h-screen flex flex-col justify-center items-center snap-center bg-black">
       <!-- Media Player (Image or Video) -->
-      <div class="media-content-wrapper w-full h-full flex items-center justify-center overflow-hidden relative"
-           (click)="toggleVideoPlayPause(item.id, $event)">
+      <div class="media-content-wrapper w-full h-full flex items-center justify-center overflow-hidden relative">
         <img *ngIf="item.mediaType === 'image'" [src]="item.mediaUrl" alt="Uploaded Image" class="max-w-full max-h-full object-contain">
-        <video *ngIf="item.mediaType === 'video'"  controls #videoPlayer [src]="item.mediaUrl" loop muted playsinline [attr.data-media-item-id]="item.id" class="max-w-full max-h-full object-contain bg-black"></video>
+        <video *ngIf="item.mediaType === 'video'" #videoPlayer [src]="item.mediaUrl" loop muted playsinline [attr.data-media-item-id]="item.id" class="max-w-full max-h-full object-contain bg-black"></video>
 
         <!-- Play/Pause Button Overlay for Videos (Visible when paused) -->
         <button *ngIf="item.mediaType === 'video' && !isPlayingMap[item.id]" mat-icon-button (click)="toggleVideoPlayPause(item.id, $event)"
@@ -28,11 +27,12 @@
         <!-- Left side: Text Info (e.g., filename, user) -->
         <div class="flex flex-col items-start space-y-1 pr-4 flex-grow">
           <p class="font-bold text-lg text-shadow-md">{{ item.fileName }}</p>
+          <p *ngIf="item.caption" class="text-sm text-shadow-sm">{{ item.caption }}</p> <!-- NEW: Display caption -->
           <p class="text-sm text-shadow-sm">Uploaded by: {{ getUserDisplayName(item.ownerId) }} on {{ item.timestamp?.toDate() | date:'medium' }}</p>
         </div>
 
         <!-- Right side: Like and Delete Buttons (Horizontal) -->
-        <div class="flex items-center space-x-2 ml-auto">
+        <div class="flex flex-col items-center space-x-2 ml-auto">
           <!-- Like Button -->
           <button mat-icon-button (click)="likeMedia(item, $event)"
                   class="flex flex-col items-center p-2 rounded-full text-white bg-black/50 hover:bg-black/70 transition-colors duration-200 transform hover:scale-110"
@@ -42,7 +42,7 @@
               <span class="whitespace-nowrap text-xs font-semibold">{{ item.likesCount || 0 }} Likes</span>
           </button>
 
-          <!-- CRITICAL FIX: Delete Button (Only visible if owner or admin) -->
+          <!-- Delete Button -->
           <button *ngIf="currentUserId && (item.ownerId === currentUserId || isAdmin)"
                   mat-icon-button color="warn" (click)="onDeleteMedia(item, $event)"
                   class="flex flex-col items-center p-2 rounded-full text-white bg-black/50 hover:bg-black/70 transition-colors duration-200 transform hover:scale-110"

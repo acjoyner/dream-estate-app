@@ -1,4 +1,4 @@
-<div class="min-h-screen flex flex-col">
+<div class="min-h-screen flex flex-col"  style="background-image: url('https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');">
   <header class="bg-white shadow-md p-4 flex justify-between items-center sticky top-0 z-30">
     <img src="assets/dreamestate-logo.svg" alt="DreamEstate Logo" class="h-8 md:h-10">
 
@@ -10,6 +10,14 @@
         </li>
 
         <ng-container *ngIf="firebaseService.userId$ | async as currentUserIdObservable">
+             <!-- NEW: Home Button for logged-in users -->
+          <li>
+            <button mat-button routerLink="/home" routerLinkActive="text-blue-600 border-b-2 border-blue-600"
+                    class="text-lg font-medium transition-colors duration-200 text-gray-600 hover:text-blue-500"
+                    [routerLinkActiveOptions]="{exact: true}"> <!-- Use exact match for home -->
+              Home
+            </button>
+          </li>
           <li>
             <button mat-button routerLink="/display" routerLinkActive="text-blue-600 border-b-2 border-blue-600"
                     class="text-lg font-medium transition-colors duration-200 text-gray-600 hover:text-blue-500">
@@ -53,13 +61,21 @@
             </button>
           </li>
           <li *ngIf="userProfilePictureUrl" class="ml-4">
-            <img [src]="userProfilePictureUrl" alt="Profile" class="w-8 h-8 rounded-full object-cover border border-gray-300 shadow-sm">
+            <img [src]="userProfilePictureUrl" alt="Profile" class="w-8 h-8 rounded-full object-cover border border-gray-300 shadow-sm transition-transform transform hover:scale-110">
           </li>
           <li *ngIf="isAdmin" class="ml-2 text-sm text-purple-700 font-bold">ADMIN</li>
         </ng-container>
 
         <!-- Login/Signup buttons (show if NOT logged in) -->
         <ng-container *ngIf="!(firebaseService.userId$ | async)">
+                <!-- NEW: Home Button for logged-out users -->
+          <li>
+            <button mat-button routerLink="/home" routerLinkActive="text-blue-600 border-b-2 border-blue-600"
+                    class="text-lg font-medium transition-colors duration-200 text-gray-600 hover:text-blue-500"
+                    [routerLinkActiveOptions]="{exact: true}"> <!-- Use exact match for home -->
+              Home
+            </button>
+          </li>
           <li>
             <button mat-button routerLink="/login" routerLinkActive="text-blue-600 border-b-2 border-blue-600"
                     class="text-lg font-medium transition-colors duration-200 text-gray-600 hover:text-blue-500">
@@ -83,7 +99,7 @@
         Your User ID: <span class="font-mono bg-gray-200 px-2 py-1 rounded text-blue-800 break-all">{{ currentUserId }}</span>
       </ng-container>
       <ng-template #notLoggedIn>
-        <span class="text-gray-600">Please Login or Sign Up</span>
+        <span class="text-gray-600 text-2xl">Please Login or Sign Up</span>
       </ng-template>
       <br>
       <!-- <span class="italic text-gray-500">

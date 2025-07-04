@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 py-10 px-4">
+<div class="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 py-10 px-4"  style="background-image: url('https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');">
   <app-message-box *ngIf="showMessageBox" [message]="message" (onClose)="closeMessageBox()"></app-message-box>
 
   <div *ngIf="isLoading" class="text-center text-gray-600 mb-6">Loading profile...</div>
@@ -9,7 +9,7 @@
       <!-- Profile Picture Display and Upload UI -->
       <div class="relative w-32 h-32 mb-4 rounded-full overflow-hidden border-4 border-white shadow-lg flex items-center justify-center bg-gray-200">
         <!-- Display actual image if available, otherwise display initial -->
-        <img *ngIf="profilePicturePreviewUrl" [src]="profilePicturePreviewUrl" alt="Profile Picture" class="w-full h-full object-cover">
+        <img *ngIf="profilePicturePreviewUrl" [src]="profilePicturePreviewUrl" alt="Profile Picture" class="w-full h-full object-cover rounded-md">">
         <div *ngIf="!profilePicturePreviewUrl" class="w-full h-full bg-blue-200 flex items-center justify-center text-xl font-bold text-blue-800">
           {{ userProfile.displayName ? userProfile.displayName.charAt(0).toUpperCase() : (userProfile.uid ? userProfile.uid.charAt(0).toUpperCase() : '') }}
         </div>
@@ -35,11 +35,11 @@
       </p>
 
       <ng-container *ngIf="isEditing; else displayMode">
-        <mat-form-field appearance="outline" class="w-full mb-2">
+        <mat-form-field  class="w-full mb-2">
           <mat-label>Display Name</mat-label>
           <input matInput [(ngModel)]="editDisplayName" name="displayName" required class="rounded-lg">
         </mat-form-field>
-        <mat-form-field appearance="outline" class="w-full mb-4">
+        <mat-form-field  class="w-full mb-4">
           <mat-label>Bio</mat-label>
           <textarea matInput [(ngModel)]="editBio" name="bio" rows="3" class="resize-none rounded-lg"></textarea>
         </mat-form-field>
@@ -88,11 +88,11 @@
           <mat-card-title class="text-xl font-bold text-red-700 mb-4">Confirm Account Deletion</mat-card-title>
           <mat-card-content class="flex flex-col space-y-4">
             <p class="text-red-500 text-sm">This action cannot be undone. All your data will be permanently deleted.</p>
-            <mat-form-field appearance="outline" class="w-full">
+            <mat-form-field class="w-full">
               <mat-label>Enter your email</mat-label>
               <input matInput type="email" [(ngModel)]="deleteEmail" name="deleteEmail" required>
             </mat-form-field>
-            <mat-form-field appearance="outline" class="w-full">
+            <mat-form-field  class="w-full">
               <mat-label>Enter your password</mat-label>
               <input matInput type="password" [(ngModel)]="deletePassword" name="deletePassword" required>
             </mat-form-field>

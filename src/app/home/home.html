@@ -1,0 +1,45 @@
+
+<div class="relative min-h-[calc(100vh-64px)] flex items-center justify-center bg-cover bg-center"
+     style="background-image: url('https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');">
+  <!-- Overlay for text readability -->
+  <div class="absolute inset-0 bg-black opacity-50"></div>
+
+  <div class="relative z-10 text-white text-center p-8 max-w-4xl mx-auto rounded-xl">
+    <h1 class="text-5xl md:text-7xl font-extrabold leading-tight mb-6 animate-fade-in-up ">
+      Find Your Dream Home. <br class="hidden md:inline"> Live Your Dream Life.
+    </h1>
+    <p class="text-lg md:text-xl mb-10 opacity-90 animate-fade-in-up delay-200">
+      Explore a curated selection of properties that perfectly match your aspirations and lifestyle.
+    </p>
+    <button mat-flat-button color="primary" routerLink="/display"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-full shadow-lg text-lg transform hover:scale-105 transition-all duration-300 animate-fade-in-up delay-400">
+      Explore Listings <mat-icon class="ml-2">arrow_forward</mat-icon>
+    </button>
+  </div>
+</div>
+
+<div class="bg-white py-16 px-8 text-center">
+  <h2 class="text-3xl font-bold text-gray-800 mb-10">Why Choose Dream Estate?</h2>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl mx-auto">
+    <div class="flex flex-col items-center p-6 bg-gray-50 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
+      <mat-icon class="text-blue-600 text-5xl mb-4">search</mat-icon>
+      <h3 class="text-xl font-semibold mb-2">Extensive Listings</h3>
+      <p class="text-gray-700">Access a vast database of properties, from cozy apartments to luxurious estates.</p>
+    </div>
+    <div class="flex flex-col items-center p-6 bg-gray-50 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
+      <mat-icon class="text-green-600 text-5xl mb-4">people</mat-icon>
+      <h3 class="text-xl font-semibold mb-2">Connect & Share</h3>
+      <p class="text-gray-700">Connect with friends, share properties, and get real-time updates on their activity.</p>
+    </div>
+    <div class="flex flex-col items-center p-6 bg-gray-50 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
+      <mat-icon class="text-purple-600 text-5xl mb-4">security</mat-icon>
+      <h3 class="text-xl font-semibold mb-2">Secure & Private</h3>
+      <p class="text-gray-700">Your data and communications are protected with robust security measures.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Simple footer -->
+<!-- <footer class="bg-gray-800 text-white py-6 text-center text-sm">
+  &copy; {{ currentYear }} Dream Estate. All rights reserved.
+</footer> -->
