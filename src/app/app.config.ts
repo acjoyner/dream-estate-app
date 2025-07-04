@@ -1,21 +1,25 @@
 import {
   ApplicationConfig,
   importProvidersFrom,
+  inject,
 } from '@angular/core';
 
-import { provideRouter } from '@angular/router'; // Ensure this is imported
+import { provideRouter } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideHttpClient } from '@angular/common/http';
-import { getDatabase, provideDatabase } from '@angular/fire/database'; // <--- ADDED: RTDB Imports
 
 // Firebase Imports for @angular/fire
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
-import { getAuth, provideAuth } from '@angular/fire/auth';
+import { getAuth, provideAuth,  } from '@angular/fire/auth'; 
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import { getStorage, provideStorage } from '@angular/fire/storage';
+import { getDatabase, provideDatabase } from '@angular/fire/database';
 
-import { routes } from './app.routes'; // Ensure this is imported
+import { routes } from './app.routes';
 import { FormsModule } from '@angular/forms';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatIconRegistry } from '@angular/material/icon';
+import { DomSanitizer } from '@angular/platform-browser';
 
 
 // src/app/app.config.ts
@@ -36,16 +40,19 @@ const firebaseConfig = {
 export const appConfig: ApplicationConfig = {
    providers: [
     provideAnimations(),
-    provideRouter(routes), // This provides the routing configuration
+    provideRouter(routes),
     provideHttpClient(),
 
-    importProvidersFrom(FormsModule),
+    importProvidersFrom(FormsModule, MatSnackBarModule),
 
+    // REAL Firebase Providers
     provideFirebaseApp(() => initializeApp(firebaseConfig)),
     provideAuth(() => getAuth()),
     provideFirestore(() => getFirestore()),
     provideStorage(() => getStorage()),
-    provideDatabase(() => getDatabase()), 
+    provideDatabase(() => getDatabase()), // RTDB Provider
+    
+  
   ],
 
 };

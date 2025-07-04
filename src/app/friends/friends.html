@@ -18,11 +18,15 @@
     <mat-card-title class="text-xl font-semibold mb-4 text-orange-600">Pending Friend Requests ({{ pendingReceivedRequests.length }})</mat-card-title>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <mat-card *ngFor="let user of pendingReceivedRequests" class="flex flex-col items-center p-4 mat-card shadow-sm">
-        <img [src]="user.profilePictureUrl || 'https://placehold.co/60x60/ccc/fff?text=?'" alt="Profile" class="w-16 h-16 rounded-full mb-3 object-cover border border-gray-200">
+        <div class="relative">
+          <!-- FIX: Corrected [src] binding to use dot notation and || for fallback -->
+          <img [src]="user.profilePictureUrl || 'https://placehold.co/60x60/ccc/fff?text=?'" alt="Profile" class="w-16 h-16 rounded-full mb-3 object-cover border border-gray-200">
+          <div class="absolute bottom-1 right-1 w-3 h-3 rounded-full border-2 border-white" [ngClass]="getOnlineStatusClass(user.uid)"></div>
+        </div>
         <span class="text-lg font-medium text-gray-800 text-center">{{ user.displayName }}</span>
         <span class="text-sm text-gray-500 mb-3 text-center">{{ user.email }}</span>
+        <span class="text-xs text-gray-500 font-semibold mb-2">Status: {{ getOnlineStatusText(user.uid) }}</span>
         <div class="flex space-x-2 mt-auto">
-          <!-- Check (click) binding here -->
           <button mat-flat-button color="primary" (click)="acceptRequest(user.uid)" class="text-xs px-2 py-1">Accept</button>
           <button mat-stroked-button color="warn" (click)="rejectRequest(user.uid)" class="text-xs px-2 py-1">Reject</button>
         </div>
@@ -35,11 +39,15 @@
     <mat-card-title class="text-xl font-semibold mb-4 text-green-600">Your Friends ({{ friendsList.length }})</mat-card-title>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <mat-card *ngFor="let user of friendsList" class="flex flex-col items-center p-4 mat-card shadow-sm">
-        <img [src]="user.profilePictureUrl || 'https://placehold.co/60x60/ccc/fff?text=?'" alt="Profile" class="w-16 h-16 rounded-full mb-3 object-cover border border-gray-200">
+        <div class="relative">
+          <!-- FIX: Corrected [src] binding -->
+          <img [src]="user.profilePictureUrl || 'https://placehold.co/60x60/ccc/fff?text=?'" alt="Profile" class="w-16 h-16 rounded-full mb-3 object-cover border border-gray-200">
+          <div class="absolute bottom-1 right-1 w-3 h-3 rounded-full border-2 border-white" [ngClass]="getOnlineStatusClass(user.uid)"></div>
+        </div>
         <span class="text-lg font-medium text-gray-800 text-center">{{ user.displayName }}</span>
         <span class="text-sm text-gray-500 mb-3 text-center">{{ user.email }}</span>
+        <span class="text-xs text-gray-500 font-semibold mb-2">Status: {{ getOnlineStatusText(user.uid) }}</span>
         <div class="flex space-x-2 mt-auto">
-          <!-- Check (click) binding here for Message button -->
           <button mat-flat-button color="accent" (click)="onSelectChat(user)" class="text-xs px-2 py-1">Message</button>
           <button mat-stroked-button color="warn" (click)="removeFriend(user.uid)" class="text-xs px-2 py-1">Remove Friend</button>
         </div>
@@ -47,15 +55,19 @@
     </div>
   </mat-card>
 
-  <!-- Other Users (Available to send requests to) -->
+  <!-- Explore Members (Other Users) -->
   <mat-card *ngIf="otherUsers.length > 0 && !isLoading" class="p-6 mat-card">
     <mat-card-title class="text-xl font-semibold mb-4 text-blue-600">Explore Members</mat-card-title>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <mat-card *ngFor="let user of otherUsers" class="flex flex-col items-center p-4 mat-card shadow-sm">
-        <img [src]="user.profilePictureUrl || 'https://placehold.co/60x60/ccc/fff?text=?'" alt="Profile" class="w-16 h-16 rounded-full mb-3 object-cover border border-gray-200">
+        <div class="relative">
+          <!-- FIX: Corrected [src] binding -->
+          <img [src]="user.profilePictureUrl || 'https://placehold.co/60x60/ccc/fff?text=?'" alt="Profile" class="w-16 h-16 rounded-full mb-3 object-cover border border-gray-200">
+          <div class="absolute bottom-1 right-1 w-3 h-3 rounded-full border-2 border-white" [ngClass]="getOnlineStatusClass(user.uid)"></div>
+        </div>
         <span class="text-lg font-medium text-gray-800 text-center">{{ user.displayName }}</span>
         <span class="text-sm text-gray-500 mb-3 text-center">{{ user.email }}</span>
-        <!-- Check (click) binding here -->
+        <span class="text-xs text-gray-500 font-semibold mb-2">Status: {{ getOnlineStatusText(user.uid) }}</span>
         <button mat-flat-button color="accent" (click)="sendRequest(user.uid)" [disabled]="isSentRequest(user)" class="mt-auto">
           {{ isSentRequest(user) ? 'Request Sent' : 'Add Friend' }}
         </button>

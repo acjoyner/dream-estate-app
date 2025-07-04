@@ -25,21 +25,9 @@
         {{ message }}
       </p>
 
-      <!-- Social Login Buttons -->
-      <div class="flex flex-col space-y-3 mt-6 border-t pt-4">
-        <p class="text-center text-sm text-gray-600">Or sign in with:</p>
-        <button mat-stroked-button (click)="onGoogleLogin()" [disabled]="isLoading" class="w-full py-3 rounded-md flex items-center justify-center space-x-2 border-gray-300 hover:bg-gray-50 transition-colors">
-          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="w-5 h-5">
-          <span>Sign in with Google</span>
-        </button>
-        <button mat-stroked-button (click)="onAppleLogin()" [disabled]="isLoading" class="w-full py-3 rounded-md flex items-center justify-center space-x-2 border-gray-300 hover:bg-gray-50 transition-colors">
-          <mat-icon svgIcon="apple-logo" style="width: 20px; height: 20px;"></mat-icon>
-          <span>Sign in with Apple</span>
-        </button>
-        <p *ngIf="socialLoginStatus" class="text-center text-sm mt-2" [ngClass]="{'text-green-600': messageType === 'success', 'text-red-600': messageType === 'error'}">
-          {{ socialLoginStatus }}
-        </p>
-      </div>
+      <!-- REMOVED: Social Login Buttons div -->
+      <!-- <div class="flex flex-col space-y-3 mt-6 border-t pt-4"> ... </div> -->
+
     </mat-card-content>
   </mat-card>
 </div>

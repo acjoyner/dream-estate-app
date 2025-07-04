@@ -4,44 +4,43 @@
 
     <nav>
       <ul class="flex space-x-6 items-center">
+        <!-- DIAGNOSTIC: Display currentUserId and isAdmin state directly -->
+        <li class="text-sm text-gray-500">
+          User: {{ firebaseService.userId$ | async }} | Admin: {{ isAdmin }}
+        </li>
+
         <ng-container *ngIf="firebaseService.userId$ | async as currentUserIdObservable">
           <li>
-            <!-- FIX: Use routerLinkActive for highlighting -->
             <button mat-button routerLink="/display" routerLinkActive="text-blue-600 border-b-2 border-blue-600"
                     class="text-lg font-medium transition-colors duration-200 text-gray-600 hover:text-blue-500">
               View Media
             </button>
           </li>
           <li>
-            <!-- FIX: Use routerLinkActive for highlighting -->
             <button mat-button routerLink="/upload" routerLinkActive="text-blue-600 border-b-2 border-blue-600"
                     class="text-lg font-medium transition-colors duration-200 text-gray-600 hover:text-blue-500">
               Upload Media
             </button>
           </li>
           <li>
-            <!-- FIX: Use routerLinkActive for highlighting -->
             <button mat-button routerLink="/profile" routerLinkActive="text-blue-600 border-b-2 border-blue-600"
                     class="text-lg font-medium transition-colors duration-200 text-gray-600 hover:text-blue-500">
               Profile
             </button>
           </li>
           <li>
-            <!-- FIX: Use routerLinkActive for highlighting -->
             <button mat-button routerLink="/friends" routerLinkActive="text-blue-600 border-b-2 border-blue-600"
                     class="text-lg font-medium transition-colors duration-200 text-gray-600 hover:text-blue-500">
               Friends
             </button>
           </li>
           <li>
-            <!-- FIX: Use routerLinkActive for highlighting -->
             <button mat-button routerLink="/resources" routerLinkActive="text-blue-600 border-b-2 border-blue-600"
                     class="text-lg font-medium transition-colors duration-200 text-gray-600 hover:text-blue-500">
               Resources
             </button>
           </li>
           <li *ngIf="isAdmin">
-            <!-- FIX: Use routerLinkActive for highlighting -->
             <button mat-button routerLink="/admin" routerLinkActive="text-blue-600 border-b-2 border-blue-600"
                     class="text-lg font-medium transition-colors duration-200 text-gray-600 hover:text-blue-500">
               Admin Panel
@@ -59,16 +58,15 @@
           <li *ngIf="isAdmin" class="ml-2 text-sm text-purple-700 font-bold">ADMIN</li>
         </ng-container>
 
+        <!-- Login/Signup buttons (show if NOT logged in) -->
         <ng-container *ngIf="!(firebaseService.userId$ | async)">
           <li>
-            <!-- FIX: Use routerLinkActive for highlighting -->
             <button mat-button routerLink="/login" routerLinkActive="text-blue-600 border-b-2 border-blue-600"
                     class="text-lg font-medium transition-colors duration-200 text-gray-600 hover:text-blue-500">
               Login
             </button>
           </li>
           <li>
-            <!-- FIX: Use routerLinkActive for highlighting -->
             <button mat-button routerLink="/signup" routerLinkActive="text-blue-600 border-b-2 border-blue-600"
                     class="text-lg font-medium transition-colors duration-200 text-gray-600 hover:text-blue-500">
               Sign Up
@@ -88,13 +86,14 @@
         <span class="text-gray-600">Please Login or Sign Up</span>
       </ng-template>
       <br>
-      <span class="italic text-gray-500">
+      <!-- <span class="italic text-gray-500">
         (Data will now persist with Firebase!)
-      </span>
+      </span> -->
     </div>
     <div *ngIf="!isServiceReady" class="text-center text-gray-600 mb-6">
       Initializing App... Please wait.
     </div>
+    <!-- Router outlet will render components based on current route -->
     <router-outlet></router-outlet>
 
     <app-chat-window *ngIf="showChatWindow && currentUserId && selectedChatRoomId && selectedChatParticipantUid"

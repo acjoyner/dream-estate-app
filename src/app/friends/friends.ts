@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, Output, EventEmitter, Input } from '@angular/core';
-import { Firebase, ChatInitiationData, OnlineStatus } from '../services/firebase'; // Ensure OnlineStatus is imported
+import { Firebase, ChatInitiationData, OnlineStatus, UserProfile } from '../services/firebase';
 import { Subscription, combineLatest, firstValueFrom } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,8 +9,7 @@ import { NgIf, NgFor, AsyncPipe, NgClass } from '@angular/common';
 import { MessageBox } from '../shared/message-box/message-box';
 import { filter, map } from 'rxjs/operators';
 
-// FIX: UserProfileForFriends now mirrors the Firebase service's UserProfile,
-// ensuring type compatibility when mapping.
+// UserProfileForFriends interface should perfectly mirror the required subset of UserProfile
 interface UserProfileForFriends {
   uid: string;
   email: string;
@@ -20,8 +19,6 @@ interface UserProfileForFriends {
   friends: string[];
   sentRequests: string[];
   receivedRequests: string[];
-  // Role, chatRooms, lastOnline are part of UserProfile from Firebase service
-  // You can include them here if Friends component needs them, but avoid if not for simplicity.
 }
 
 @Component({
@@ -62,17 +59,21 @@ export class Friends implements OnInit, OnDestroy {
         this.isLoading = true;
         this.subscriptions.push(
           this.firebaseService.getUserProfile(uid!).subscribe({
-            next: (profile) => {
-              this.currentUserProfile = {
-                uid: profile?.['uid'] || '',
-                displayName: profile?.['displayName'] || '',
-                email: profile?.['email'] || '',
-                profilePictureUrl: profile?.['profilePictureUrl'],
-                isPrivate: profile?.['isPrivate'] || false,
-                friends: profile?.['friends'] || [],
-                sentRequests: profile?.['sentRequests'] || [],
-                receivedRequests: profile?.['receivedRequests'] || []
-              } as UserProfileForFriends;
+            next: (profile: UserProfile | null) => { // Type profile as UserProfile
+              if (profile) {
+                  this.currentUserProfile = {
+                      uid: profile.uid, // No ? or || '' needed if UserProfile guarantees string
+                      displayName: profile.displayName,
+                      email: profile.email,
+                      profilePictureUrl: profile.profilePictureUrl,
+                      isPrivate: profile.isPrivate,
+                      friends: profile.friends,
+                      sentRequests: profile.sentRequests,
+                      receivedRequests: profile.receivedRequests
+                  } as UserProfileForFriends; // Explicit cast after dot notation access
+              } else {
+                  this.currentUserProfile = null;
+              }
               this.isLoading = false;
               console.log('FriendsComponent: currentUserProfile loaded:', this.currentUserProfile);
               this.loadAllUsers();
@@ -103,16 +104,16 @@ export class Friends implements OnInit, OnDestroy {
     console.log('FriendsComponent: loadAllUsers called.');
     this.subscriptions.push(
       this.firebaseService.getAllUserProfiles().pipe(
-        map(users => users.filter(user => user['uid'] !== this.currentUserId) // user is now directly UserProfile
-          .map(user => ({ // User is already UserProfile from service, convert to UserProfileForFriends
-            uid: user['uid'],
-            displayName: user['displayName'],
-            email: user['email'],
-            profilePictureUrl: user['profilePictureUrl'],
-            isPrivate: user['isPrivate'],
-            friends: user['friends'],
-            sentRequests: user['sentRequests'],
-            receivedRequests: user['receivedRequests']
+        map((users: UserProfile[]) => users.filter((user: UserProfile) => user.uid !== this.currentUserId) // FIX: Explicitly type user as UserProfile
+          .map((user: UserProfile) => ({ // FIX: Explicitly type user as UserProfile here as well
+            uid: user.uid,
+            displayName: user.displayName,
+            email: user.email,
+            profilePictureUrl: user.profilePictureUrl,
+            isPrivate: user.isPrivate,
+            friends: user.friends,
+            sentRequests: user.sentRequests,
+            receivedRequests: user.receivedRequests
           } as UserProfileForFriends)) // Explicit cast after mapping
         )
       ).subscribe({
@@ -121,7 +122,7 @@ export class Friends implements OnInit, OnDestroy {
           console.log("FriendsComponent: allUsers loaded:", this.allUsers);
           this.allUsers.forEach(user => {
             if (!this.onlineStatusSubscriptions[user.uid]) {
-              this.onlineStatusSubscriptions[user.uid] = this.firebaseService['getOnlineStatus'](user.uid).subscribe((status: OnlineStatus) => {
+              this.onlineStatusSubscriptions[user.uid] = this.firebaseService.getOnlineStatus(user.uid).subscribe(status => {
                 this.onlineStatusMap[user.uid] = status;
               });
             }
@@ -147,10 +148,55 @@ export class Friends implements OnInit, OnDestroy {
     }
   }
 
-  async sendRequest(receiverUid: string): Promise<void> { /* ... */ }
-  async acceptRequest(senderUid: string): Promise<void> { /* ... */ }
-  async rejectRequest(senderUid: string): Promise<void> { /* ... */ }
-  async removeFriend(friendUid: string): Promise<void> { /* ... */ }
+  getOnlineStatusText(uid: string): string {
+    const status = this.onlineStatusMap[uid]?.state;
+    switch (status) {
+      case 'online': return 'Online';
+      case 'away': return 'Away';
+      case 'offline': return 'Offline';
+      default: return 'Unknown';
+    }
+  }
+
+  async sendRequest(receiverUid: string): Promise<void> {
+    console.log('FriendsComponent: sendRequest called for:', receiverUid);
+    if (!this.currentUserId) { console.warn('FriendsComponent: Cannot send request, currentUserId is null.'); return; }
+    this.message = ''; this.messageType = ''; this.showMessageBox = false;
+    try {
+      await firstValueFrom(this.firebaseService.sendFriendRequest(this.currentUserId, receiverUid));
+      this.message = 'Friend request sent!'; this.messageType = 'success'; console.log(`Request sent to ${receiverUid}`);
+    } catch (error: any) { this.message = `Failed to send request: ${error.message}`; this.messageType = 'error'; this.showMessageBox = true; console.error('Send request failed:', error); }
+  }
+
+  async acceptRequest(senderUid: string): Promise<void> {
+    console.log('FriendsComponent: acceptRequest called for:', senderUid);
+    if (!this.currentUserId) { console.warn('FriendsComponent: Cannot accept request, currentUserId is null.'); return; }
+    this.message = ''; this.messageType = ''; this.showMessageBox = false;
+    try {
+      await firstValueFrom(this.firebaseService.acceptFriendRequest(this.currentUserId, senderUid));
+      this.message = 'Friend request accepted!'; this.messageType = 'success'; console.log(`Request from ${senderUid} accepted`);
+    } catch (error: any) { this.message = `Failed to accept request: ${error.message}`; this.messageType = 'error'; this.showMessageBox = true; console.error('Accept request failed:', error); }
+  }
+
+  async rejectRequest(senderUid: string): Promise<void> {
+    console.log('FriendsComponent: rejectRequest called for:', senderUid);
+    if (!this.currentUserId) { console.warn('FriendsComponent: Cannot reject request, currentUserId is null.'); return; }
+    this.message = ''; this.messageType = ''; this.showMessageBox = false;
+    try {
+      await firstValueFrom(this.firebaseService.rejectFriendRequest(this.currentUserId, senderUid));
+      this.message = 'Friend request rejected.'; this.messageType = 'success'; console.log(`Request from ${senderUid} rejected`);
+    } catch (error: any) { this.message = `Failed to reject request: ${error.message}`; this.messageType = 'error'; this.showMessageBox = true; console.error('Reject request failed:', error); }
+  }
+
+  async removeFriend(friendUid: string): Promise<void> {
+    console.log('FriendsComponent: removeFriend called for:', friendUid);
+    if (!this.currentUserId) { console.warn('FriendsComponent: Cannot remove friend, currentUserId is null.'); return; }
+    this.message = ''; this.messageType = ''; this.showMessageBox = false;
+    try {
+      await firstValueFrom(this.firebaseService.removeFriend(this.currentUserId, friendUid));
+      this.message = 'Friend removed.'; this.messageType = 'success'; console.log(`Friend ${friendUid} removed`);
+    } catch (error: any) { this.message = `Failed to remove friend: ${error.message}`; this.messageType = 'error'; this.showMessageBox = true; console.error('Remove friend failed:', error); }
+  }
 
   onSelectChat(user: UserProfileForFriends): void {
     console.log('Friends: Message button clicked for user:', user.displayName, user.uid);
@@ -159,48 +205,18 @@ export class Friends implements OnInit, OnDestroy {
       otherUserName: user.displayName,
       otherUserPic: user.profilePictureUrl
     };
-    this.firebaseService['triggerOpenChatWindow'](chatData);
+    this.firebaseService.triggerOpenChatWindow(chatData);
   }
 
-  isFriend(user: UserProfileForFriends): boolean {
-    return !!this.currentUserProfile?.friends?.includes(user.uid);
-  }
-
-  isSentRequest(user: UserProfileForFriends): boolean {
-    return !!this.currentUserProfile?.sentRequests?.includes(user.uid);
-  }
-
-  isReceivedRequest(user: UserProfileForFriends): boolean {
-    return !!this.currentUserProfile?.receivedRequests?.includes(user.uid);
-  }
-
-  // Ensure filter callbacks explicitly return boolean and use dot notation
-  get pendingSentRequests(): UserProfileForFriends[] {
-    return this.allUsers.filter(user => !!(this.currentUserProfile?.sentRequests?.includes(user.uid)));
-  }
-
-  // Ensure filter callbacks explicitly return boolean and use dot notation
-  get pendingReceivedRequests(): UserProfileForFriends[] {
-    return this.allUsers.filter(user => !!(this.currentUserProfile?.receivedRequests?.includes(user.uid)));
-  }
-
-  // Ensure filter callbacks explicitly return boolean and use dot notation
-  get friendsList(): UserProfileForFriends[] {
-    return this.allUsers.filter(user => !!(this.currentUserProfile?.friends?.includes(user.uid)));
-  }
-
-  // Ensure filter callbacks explicitly return boolean and use dot notation
+  isFriend(user: UserProfileForFriends): boolean { return !!this.currentUserProfile?.friends?.includes(user.uid); }
+  isSentRequest(user: UserProfileForFriends): boolean { return !!this.currentUserProfile?.sentRequests?.includes(user.uid); }
+  isReceivedRequest(user: UserProfileForFriends): boolean { return !!this.currentUserProfile?.receivedRequests?.includes(user.uid); }
+  get pendingSentRequests(): UserProfileForFriends[] { return this.allUsers.filter(user => !!(this.currentUserProfile?.sentRequests?.includes(user.uid))); }
+  get pendingReceivedRequests(): UserProfileForFriends[] { return this.allUsers.filter(user => !!(this.currentUserProfile?.receivedRequests?.includes(user.uid))); }
+  get friendsList(): UserProfileForFriends[] { return this.allUsers.filter(user => !!(this.currentUserProfile?.friends?.includes(user.uid))); }
   get otherUsers(): UserProfileForFriends[] {
     if (!this.currentUserId) return [];
-    return this.allUsers.filter(user =>
-      !!(!this.isFriend(user) &&
-      !this.isSentRequest(user) &&
-      !this.isReceivedRequest(user) &&
-      user.uid !== this.currentUserId) // FIX: user.uid (dot notation)
-    );
+    return this.allUsers.filter(user => !this.isFriend(user) && !this.isSentRequest(user) && !this.isReceivedRequest(user) && user.uid !== this.currentUserId);
   }
-
-  closeMessageBox(): void {
-    this.showMessageBox = false;
-  }
+  closeMessageBox(): void { this.showMessageBox = false; }
 }
